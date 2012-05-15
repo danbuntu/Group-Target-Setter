@@ -1,0 +1,95 @@
+html, body {
+	font: 92%/1.6em Futura, Arial, Verdana, sans-serif;
+	color: #333;
+}
+
+#container {
+	width: 400px;
+	margin: 1em auto 0 auto;
+	text-align: left;
+}
+
+h1 {
+	font-size: 1.3em;
+	color: #000;
+	height: 44px;
+	padding: 14px 0 0 0;
+}
+
+h2 {
+	font-size: 1em;
+	color: #000;
+	font-weight: bold;
+	margin-top: 1em;
+	border-bottom: 1px solid #ccc;
+}
+
+h3 {
+	font-size: 1em;
+	color: #000;
+	font-weight: bold;
+	margin-top: 1em;
+	border-bottom: 1px solid #ccc;
+}
+
+a:focus { outline: none; }
+strong { font-weight: bold; }
+em { font-style: italic; }
+p {
+	margin: 0 0 1em 0;
+}
+pre {
+	margin: 1em 0;
+	border: 1px solid #eee;
+	padding: 10px;
+	color: green;
+}
+code {
+	color: green;
+}
+
+/* accordion */
+.accordion {
+	border: 1px solid #aaa;
+	padding: 4px;
+	margin: 1em;
+	background: #fff;
+}
+
+.accordion dt {
+    background-image: url('http://s-moodledev/theme/midkent_newstyle/plus.gif') right top;
+background-repeat: no-repeat;
+background-color: #000;
+	color: #fff;
+	font-weight: bold;
+	padding-left: 10px;
+}
+
+.accordion dt.selected {
+	background: #26B1E0;
+}
+
+.accordion dt.selected2 {
+	background: #70A02B;
+}
+
+.accordion dt:hover, .accordion dt.over {
+	text-decoration: underline;
+	cursor: pointer;
+	cursor: hand;
+}
+
+.accordion dd {
+	display: none;
+	border: 1px solid #aaa;
+	padding: 4px;
+	overflow: hidden;
+}
+
+.accordion dd.open {
+	display: block;
+}
+
+.accordion dd.getHeight {
+	display: block;
+}

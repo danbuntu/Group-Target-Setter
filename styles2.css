@@ -1,0 +1,120 @@
+
+
+
+table td {
+    text-align: center;
+}
+
+
+
+#a.submit {
+    background: url(./images/Save-icon.png) no-repeat;
+    width: 90px;
+    height: 90px;
+}
+
+#a.submit:hover {
+    background: url(./images/Save-icon-down.png) no-repeat;
+    width: 90px;
+    height: 90px;
+    background-color: red;
+
+}
+
+.addNew {
+    background: url(./images/help-icon2.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.addNew:hover {
+    background: url(./images/help-icon3.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.edit {
+    background: url(./images/edit-icon1.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.edit:hover {
+    background: url(./images/edit-icon2.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.select_list {
+    font-weight: bold;
+}
+
+
+#totals {
+    text-align: center;
+}
+
+.totals th {
+    text-align: center;
+}
+
+#save {
+    float: right;
+}
+
+.bronze {
+    color: #DF8F3F;
+}
+
+.silver {
+    color: #87AACB;
+}
+
+.gold {
+    color: #DAA520;
+}
+
+FORM .input {
+    margin-left: 150px;
+}
+
+.pad {
+    margin-left: 150px;
+    margin-bottom: 10px;
+}
+
+
+
+.crit_target {
+    background-color: lightblue;
+    text-align: center;
+}
+
+.crit_target2 {
+    background-color: #BFC2FD;
+    text-align: center;
+}
+
+.unit_name {
+    background-color: #FDB7B7;
+text-align: center;
+
+}
+
+.datepicker {
+  margin-left: -80px;
+  margin-top: 40px
+
+}
+
+li {
+    color: #000000;
+}
+
+.badges {
+    display: inline-block;
+}

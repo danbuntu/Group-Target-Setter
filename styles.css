@@ -1,0 +1,287 @@
+/* 
+    Document   : styles
+    Created on : 01-Feb-2011, 14:30:08
+    Author     : dattwood
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root {
+    display: block;
+}
+
+.unit_target {
+    background-color: #f08080;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.crit_target {
+    background-color: lightblue;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.crit_target2 {
+    background-color: blue;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.unit_name {
+    background-color: #ff3d3d;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.criteria_name {
+    background-color: lightblue;
+}
+
+#unit_des {
+
+}
+
+#unit_des:hover {
+    display: none;
+
+}
+
+.header1 {
+    background-color: white;
+}
+
+.show_units {
+    background-color: lightblue;
+}
+
+.unit {
+    background-color: #b4cdcd;
+}
+
+.report {
+    background-color: #b0c4de;
+}
+
+.reportdiv {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-up: 10px;
+    margin-right: 10px;
+
+}
+
+table.table {
+    border-width: 1px;
+    border-spacing: 0px;
+    border-style: solid;
+
+    border-collapse: separate;
+    background-color: white;
+}
+
+table.table th {
+    border-width: 1px;
+    padding: 0px;
+
+    border-color: #778899;
+    background-color: #add8e6;
+    -moz-border-radius:;
+}
+
+table.table td {
+    border-width: 1px;
+    padding: 0px;
+    border-style: solid;
+    border-color: #778899;
+    background-color: white;
+    -moz-border-radius:;
+}
+
+/*
+    Document   : group_targets
+    Created on : 09-Nov-2010, 16:42:14
+    Author     : dattwood
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/*
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root {
+    display: block;
+}
+
+#layout {
+    margin: 10px 20px 20px 20px;
+    background-color: white;
+    /*border-width: 20px;*/
+    border-style: solid;
+    border-color: #26B1E0;
+    float: left;
+    padding: 10px 10px 10px 10px;
+    min-width: 400px;
+    max-width: 98%;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#students {
+    background-color: #D7D7DB;
+    padding-left: 50px;
+    width: 100%;
+    float: left;
+    margin-top: 10px;
+
+}
+
+#targets {
+    float: right;
+    width: 400px;
+    margin-right: 50px;
+    background-color: #D7D7DB;
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
+/* put a line break in after the labels */
+label {
+    display: block;
+    clear: both;
+}
+
+#save {
+    text-align: right;
+    /*hide the text*/
+    font-size: 0;
+    line-height: 0;
+    padding-left: 1000px;
+}
+
+#save {
+
+    border: none;
+    background: url('images/Save-icon.png') no-repeat top left;
+    height: 50px;
+    width: 50px;
+    font-weight: bold;
+    /*hide the text*/
+    font-size: 0;
+    line-height: 0;
+    padding-left: 1000px;
+}
+
+#save.mhover {
+    border: none;
+    font-weight: normal;
+    background: url('images/Save-icon-down.png') no-repeat top left;
+    padding: 2px 8px;
+    /*hide the text*/
+    font-size: 0;
+    line-height: 0;
+    padding-left: 1000px;
+}
+
+#filter {
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+#filter {
+    border: none;
+    background: url('images/filter-64.png') no-repeat top left;
+    height: 33px;
+    width: 33px;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+#filter.mhover {
+    border: none;
+    font-weight: normal;
+    background: url('images/filter-64-down.png') no-repeat top left;
+    padding: 2px 8px;
+}
+
+#mark {
+    text-align: center;
+    margin-right: 5px;
+}
+
+tr.odd {
+    background-color: #E9F4FD;
+}
+
+#a.submit {
+    background: url(./images/Save-icon.png) no-repeat;
+    width: 90px;
+    height: 90px;
+}
+
+#a.submit:hover {
+    background: url(./images/Save-icon-down.png) no-repeat;
+    width: 90px;
+    height: 90px;
+    background-color: red;
+
+}
+
+.addNew {
+    background: url(./images/help-icon2.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.addNew:hover {
+    background: url(./images/help-icon3.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.edit {
+    background: url(./images/edit-icon1.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.edit:hover {
+    background: url(./images/edit-icon2.png) no-repeat;
+    background-position: center;
+    display: block;
+    align: center;
+}
+
+.select_list {
+    font-weight: bold;
+}
+
+.bronze {
+    color: #DF8F3F;
+}
+
+.silver {
+    color: #87AACB;
+}
+
+.gold {
+    color: #DAA520;
+}
