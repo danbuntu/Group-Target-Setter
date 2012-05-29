@@ -52,31 +52,21 @@ function topbar($menuItem)
 }
 
 
-function showCurrentlySelectedCourse($CFG, $mysqli)
+function showCurrentlySelectedCourse($CFG, $DB)
 {
 
-    $querycoursename = "SELECT fullname FROM {$CFG->prefix}course WHERE id='" . $_SESSION['course_code_session'] . "'";
+    $resultcourse = $DB->get_record('course', array('id' => $_SESSION['course_code_session'] ));
 
-    //echo $querycoursename;
+        $fullname = $resultcourse->fullname;
 
-    $resultcourse = $mysqli->query($querycoursename);
-
-    while ($row = $resultcourse->fetch_object()) {
-        $fullname = $row->fullname;
-    }
-
-
-    echo '<b><a class="btn btn-success" href="' . $CFG->wwwroot . '/course/view.php?id=' . $_SESSION['course_code_session'] . '">Curently selected course is ' . preg_replace("/[^a-zA-Z0-9\s]/", "", $fullname) . '</a></b>';
+    echo '<b><a class="btn btn-success" href="' . $CFG->wwwroot . '/course/view.php?id=' . $_SESSION['course_code_session'] . '">The currently selected course is ' . preg_replace("/[^a-zA-Z0-9\s]/", "", $fullname) . '</a></b>';
 }
 
-function getCourseContextID($courseId, $mysqli)
+function getCourseContextID($courseId, $DB)
 {
-    $query = "SELECT id FROM mdl_context WHERE instanceid='" . $courseId . "' AND contextlevel='50'";
-    $result = $mysqli->query($query);
-    while ($row = $result->fetch_object()) {
-        $courseContextId = $row->id;
-    }
-    return $courseContextId;
+
+    $result = $DB->get_record('context' , array('instanceid' => $courseId, 'contextlevel' => '50'));
+    return $result->id;
 }
 
 // Get the date 1 month ago
@@ -265,22 +255,30 @@ function getTargets($studentMoodleId, $target_month, $target_month_with, $target
 }
 
 // Get the students targets
-function getTargets2($whereSetForUserid, $mysqli)
+function getTargets2($whereSetForUserid, $DB, $targetId)
 {
 
-    $query = "SELECT u.id, setforuserid, status, p.timemodified  ,SUM(IF(status = '0',1,0)) AS 'tobe', SUM(IF(status = '1',1,0)) AS 'achieved'  , SUM(IF(status = '3',1,0)) AS 'withdrawn'";
-    $from = " FROM mdl_user u  ";
-    $join = " LEFT JOIN mdl_ilptarget_posts p ON u.id=p.setforuserid ";
-    $where = "WHERE " . $whereSetForUserid . "";
-    $group = " GROUP BY u.id";
-    $query = $query . $from . $join . $where . $group;
-    //    echo $query;
-    //    $tobe = 0;
-    //    $achieved = 0;
-    //    $withdrawn = 0;
-    $result = $mysqli->query($query);
+//    $query = "SELECT u.id, setforuserid, status, p.timemodified  ,SUM(IF(status = '0',1,0)) AS 'tobe', SUM(IF(status = '1',1,0)) AS 'achieved'  , SUM(IF(status = '3',1,0)) AS 'withdrawn'";
+//    $from = " FROM mdl_user u  ";
+//    $join = " LEFT JOIN mdl_ilptarget_posts p ON u.id=p.setforuserid ";
+//    $where = "WHERE " . $whereSetForUserid . "";
+//    $group = " GROUP BY u.id";
+//    $query = $query . $from . $join . $where . $group;
+
+$query = "SELECT u.id, pi.name, pi.passfail, SUM(IF(pi.passfail = '0',1,0)) AS 'tobe', SUM(IF(pi.passfail = '2',1,0)) AS 'achieved'  , SUM(IF(pi.passfail = '3',1,0)) AS 'withdrawn'
+FROM mdl_block_ilp_entry e,
+mdl_block_ilp_plu_ste_ent pe,
+ mdl_block_ilp_plu_ste_items pi,
+ mdl_user u
+WHERE e.report_id='" . $targetId . "' and (" . $whereSetForUserid . ")
+ AND		pe.parent_id	=	pi.id
+ AND e.id			=	pe.entry_id
+ AND u.id = e.user_id
+ GROUP BY e.user_id";
+
+    $result = $DB->get_records_sql($query);
     $targets = array();
-    while ($row = $result->fetch_object()) {
+    foreach ($result as $row) {
 
         $targets[] = array(
             'id' => $row->id,
