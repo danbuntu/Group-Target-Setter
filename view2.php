@@ -1,9 +1,8 @@
 <?php
-
+include('settings.php');
 include('top_include.php');
-?>
 
-    <?php topbar('Group Target Setter'); ?>
+topbar('Group Target Setter'); ?>
 
 
 <div class="container-fluid">
@@ -37,9 +36,8 @@ include('top_include.php');
 </div>
 
 <div>
-
     <?php
-    showCurrentlySelectedCourse($CFG, $mysqli);
+    showCurrentlySelectedCourse($CFG, $DB);
     ?>
 </div>
 
@@ -59,16 +57,11 @@ if ($_SESSION['course_group_session'] == 'All groups') {
 }
 
 $querystudents = $select . $from . $where . $andgroup . $and;
-//echo $querystudents;
+echo $querystudents;
 
-$resultsstudents = $mysqli->query($querystudents);
-$num_students = $resultsstudents->num_rows;
-//echo 'num rows: ', $num_students;
+$resultsStudents = $DB->get_records_sql($querystudents);
 $count = 0;
 
-?>
-
-<?php
 // Reset all graph score to zero
 include('zero-scores.php');
 
@@ -77,44 +70,7 @@ $dateMonth = getDateMonth();
 ?>
 
 <h2>Students on this course</h2>
-<form name="process" action="process_targets2.php" method="POST">
-<table id="example" class="table table-striped" style="text-align: center;">
-<thead>
-<tr>
-    <th>Name</th>
-    <th>Surname</th>
-    <th>RAG</th>
-    <th>ID</th>
-    <th>Select</th>
-    <th>Att %</th>
-    <th>Targets</th>
-    <th>Reviews</th>
-    <th>Concerns</th>
-    <th>Reasons</th>
-    <th>Contribs</th>
-    <th>T-MTG</th>
-    <th>P-Best</th>
-    <th>QCA</th>
-    <th>MIS MTG</th>
-    <th>R 1</th>
-    <th></th>
-    <th>R 2</th>
-    <th></th>
-    <th>R 3</th>
-    <th></th>
-    <th>R 4</th>
-    <th>Parental</th>
-    <th>Cast</th>
-    <th>Withdrawn</th>
-    <th>Mobile</th>
-    <th>Medals</th>
-    <th>Passport</th>
-    <th>Last Review</th>
-    <th>Last Review By</th>
 
-</tr>
-</thead>
-<tbody>
 
 <?php
 $whereSetForUserid = "";
@@ -147,16 +103,15 @@ $where = '';
 $students = array();
 $studentsRefs = array();
 
-
-
 // build the array of students and the array to send to the soap service
-while ($row = $resultsstudents->fetch_object()) {
+foreach ($resultsStudents as $row) {
 
     //    echo 'idnumber ' . $row->idnumber;
 
     // build a where query
     //    $whereSetFor = $whereSetFor . "setforuserid='" . $row->id . "' OR ";
     $whereSetForUserid = $whereSetForUserid . "u.id='" . $row->id . "' OR ";
+    $whereSetForUserid2 = $whereSetForUserid2 . "e.user_id='" . $row->id . "' OR ";
     $studentRefs[] = array(
         'id' => $row->id,
         'lref' => $row->idnumber,
@@ -166,18 +121,25 @@ while ($row = $resultsstudents->fetch_object()) {
     );
 }
 
-//print_r($studentRefs);
-
 // cut the end of the where
 //$whereSetFor = substr($whereSetFor, 0, -3);
 $whereSetForUserid = substr($whereSetForUserid, 0, -3);
+$whereSetForUserid2 = substr($whereSetForUserid2, 0, -3);
 
-// get the students reviews
-$reviews = getReviews2($whereSetForUserid, $mysqli);
-$targets = getTargets2($whereSetForUserid, $mysqli);
-$rag = getRag2($whereSetForUserid, $mysqli);
-$mtg = getMTGS2($whereSetForUserid, $mysqli);
-$lastReview = getLastReview($whereSetForUserid, $mysqli);
+
+// set the ids this is based on the hardcoded id found from mdl_block_ilp_report
+
+
+// get the students targets
+
+$targets = getTargets2($whereSetForUserid2, $DB, $targetId);
+
+print_r($targets);
+
+$reviews = getReviews2($whereSetForUserid2, $DB, $reportsArray);
+$rag = getRag2($whereSetForUserid2, $DB);
+$mtg = getMTGS2($whereSetForUserid, $DB);
+$lastReview = getLastReview($whereSetForUserid2, $DB, $reviewNumber);
 
 try {
     $report = $client->__soapCall("groupReport2", array($studentRefs));
@@ -186,7 +148,7 @@ try {
     echo ' There has been a problem getting the attendance from NG';
 }
 //echo 'dump reviews';
-//var_dump($report);
+var_dump($report);
 
 //combine the student array and reviews array
 
@@ -238,47 +200,75 @@ foreach ($studentRefs as &$student)
 
 }
 
+echo '<br>student refs<br>';
+print_r($studentRefs);
+
 //dump the reviews array as we don't need it anymore
 unset($reviews);
-unset($ragets);
+unset($targets);
 unset($rag);
 unset($mtg);
-unset($report);
+
 unset($lastReview);
 
 //print_r($studentRefs);
 
+// rpint out the table headers
+?>
+<form name="process" action="process_targets2.php" method="POST">
+<table id="example" class="table table-striped" style="text-align: center;">
+<thead>
+<tr>
+    <th>Name</th>
+    <th>Surname</th>
+    <th>RAG</th>
+    <th>ID</th>
+    <th>Select</th>
+    <th>Att %</th>
+    <th>Targets</th>
+
+    <?php
+    // print out the reports headers based on the available reports
+        foreach ($reportsArray as $key => $item) {
+            echo '<th>' . $item . '</th>';
+        }
+
+if ($mtgSet = 1) {
+    ?>
+
+    <th>T-MTG</th>
+    <th>P-Best</th>
+    <th>QCA</th>
+    <th>MIS MTG</th>
+        <?php } ?>
+    <th>R 1</th>
+    <th></th>
+    <th>R 2</th>
+    <th></th>
+    <th>R 3</th>
+    <th></th>
+    <th>R 4</th>
+    <th>Parental</th>
+    <th>Cast</th>
+    <th>Withdrawn</th>
+    <th>Mobile</th>
+    <th>Medals</th>
+    <th>Passport</th>
+    <th>Last Review</th>
+    <th>Last Review By</th>
+
+</tr>
+</thead>
+<tbody>
+
+<?php
+
+unset($report);
 //
 //
 foreach ($studentRefs as $row) {
-    //    echo 'idnumber ' . $row['lref'] . '<br/>';
-//echo 'testing' . $row['highestaward'] . $row['mobile'];
-
-    // end the soap related bits
-
-    if (($row['mtg'] != '') or ($row['mtg'] != null)) {
-        $mtg_set++;
-    }
 
 
-    // set the rag colour and icon
-    if (($row['ragstatus'] == '0') or ($row['ragstatus'] == null)) {
-        $colour = 'green';
-        $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
-        $green++;
-    } elseif ($row['ragstatus'] == '1') {
-        $colour = 'amber';
-        $ragicon = '<img src="images/2Yellow_Ball.png" title="2yellow" height="20px" width="20px"/>';
-        $amber++;
-    } elseif ($row['ragstatus'] == '2') {
-        $ragicon = '<img src="images/3Red_Ball.png" title="3red" height="20px" width="20px"/>';
-        $colour = 'red';
-        $red++;
-    } else {
-        $colour = 'green';
-        $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
-        $green++;
-    }
 
     //            Flightplan stuff
 
@@ -329,7 +319,31 @@ foreach ($studentRefs as $row) {
         href="<?php echo $CFG->wwwroot; ?>/blocks/ilp/view.php?courseid=<?php echo $_SESSION['course_code_session']; ?>&id=<?php echo $row['id']; ?>"
         target="_blank"><?php echo $row['lastname']; ?></a>
     </td>
+
+    <?php if ($ragSet == 1) {
+    // set the rag colour and icon
+    if (($row['ragstatus'] == '3') or ($row['ragstatus'] == null)) {
+    $colour = 'green';
+    $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
+    $green++;
+    } elseif ($row['ragstatus'] == '2') {
+    $colour = 'amber';
+    $ragicon = '<img src="images/2Yellow_Ball.png" title="2yellow" height="20px" width="20px"/>';
+    $amber++;
+    } elseif ($row['ragstatus'] == '1') {
+    $ragicon = '<img src="images/3Red_Ball.png" title="3red" height="20px" width="20px"/>';
+    $colour = 'red';
+    $red++;
+    } else {
+    $colour = 'green';
+    $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
+    $green++;
+    }
+
+      ?>
     <td><?php echo $ragicon; ?></td>
+    <?php } ?>
+
     <td><?php echo $row['lref']; ?></td>
     <td><input type="checkbox" class="checkbox" name="checkbox[]" value="<?php echo $row['id']; ?>"></td>
     <td><?php echo $row['totalAtt']; ?></td>
@@ -375,10 +389,25 @@ foreach ($studentRefs as $row) {
     }
 
     ?>
+
+    <?php
+    if ($mtgSet = 1) {
+        ?>
+
     <td><?php echo $row['tutor_mtg']; ?></td>
     <td><?php echo $row['mtg']; ?></td>
+
+    <?php
+    // set the MTG running total for the graphs
+    if (($row['mtg'] != '') or ($row['mtg'] != null)) {
+        $mtg_set++;
+    }
+?>
+
     <td><?php echo $row['qca']; ?></td>
     <td><?php echo $row['mis_mtg']; ?></td>
+
+        <?php } ?>
     <td><?php echo $review1; ?>
     <td><?php echo $r2; ?></td>
     <td><?php echo $review2; ?></td>
