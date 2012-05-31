@@ -15,6 +15,21 @@ $targetId = '3';
 
 
 // the ID of the reviews
-$reviewId = '3';
+
+$reportsArray = array(
+    '3' => 'Reviews',
+    '4' => 'Concerns'
+);
+
+
+
+// Decalre the number of the PT reviews. Used to display the last review date and the person that did it
+$reviewNumber = '3';
+
+
+
+// settings to turn features on and off - 1 = on
+$mtgSet = '1';
+$ragSet = '1';
 
 ?>
