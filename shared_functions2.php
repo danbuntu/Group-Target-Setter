@@ -100,17 +100,16 @@ GROUP BY e.user_id
     $reviewer = array();
     foreach ($result as $row) {
         $reviewer[] = array(
-            'id' => $row->id,
+            'id' => $row->user_id,
             'lastreview' => $row->firstname . ' ' . $row->lastname,
-            'date' => date("d-m-Y", $row->timecreated),
+            'lastreviewdate' => date("d-m-Y", $row->timecreated),
         );
     }
 
-    echo '<br>Last Review<br>';
-    print_r($reviewer);
+//    echo '<br>Last Review<br>';
+//    print_r($reviewer);
 
     return $reviewer;
-
 }
 
 //// Get the students review, concern etc numbers
@@ -190,32 +189,51 @@ function getReviews2($whereSetForUserid, $DB, $reportsArray)
     // knock of the last comma
     $query2 = substr($query2, 0, -1);
 
-    $query1 = "SELECT user_id as id, timemodified, ";
-    $from = " FROM mdl_block_ilp_entry e";
+    $query1 = "SELECT u.id, ";
+    $from = " FROM mdl_user u";
+    $join = " LEFT JOIN mdl_block_ilp_entry e ON u.id=e.user_id";
     $where = " WHERE " . $whereSetForUserid . "";
-    $group = " GROUP BY e.user_id";
+    $group = " GROUP BY u.id";
 
-    $query = $query1 . $query2 . $from . $where . $group;
-        echo $query;
+    $query = $query1 . $query2 . $from . $join . $where . $group;
+//        echo $query;
     $result = $DB->get_records_sql($query);
 
     $reviews = array();
 
-    print_r($result);
+//    print_r($result);
 
     foreach ($result as $key => $row) {
-
         // loop through the array to build the reviews array from the available options
-               $reviews[] = array(
-                   $key => $row
-        );
+               $reviews[$key] =  $row;
     }
 
-    echo '<br>reviews<br>';
-    print_r($reviews);
+//    echo '<br>reviews<br>';
+    $reviews = object2Array($reviews);
+//    print_r($reviews);
 
     return $reviews;
 }
+
+
+
+ 	function object2Array($d)
+     {
+         if (is_object($d))
+         {
+             $d = get_object_vars($d);
+         }
+
+         if (is_array($d))
+         {
+             return array_map(__FUNCTION__, $d);
+         }
+         else
+         {
+             return $d;
+         }
+     }
+
 
 
 function getRag2($whereSetForUserid, $DB)
@@ -241,9 +259,8 @@ function getRag2($whereSetForUserid, $DB)
         );
     }
 
-    echo '<br>RAG<br>';
-    print_r($rag);
-
+//    echo '<br>RAG<br>';
+//    print_r($rag);
 
     return $rag;
 
@@ -296,21 +313,19 @@ function getTargets2($whereSetForUserid, $DB, $targetId)
 //    $query = $query . $from . $join . $where . $group;
 
 $query = "SELECT u.id, pi.name, pi.passfail, SUM(IF(pi.passfail = '0',1,0)) AS 'tobe', SUM(IF(pi.passfail = '2',1,0)) AS 'achieved'  , SUM(IF(pi.passfail = '3',1,0)) AS 'withdrawn'
-FROM mdl_block_ilp_entry e,
-mdl_block_ilp_plu_ste_ent pe,
- mdl_block_ilp_plu_ste_items pi,
- mdl_user u
-WHERE e.report_id='" . $targetId . "' and (" . $whereSetForUserid . ")
- AND		pe.parent_id	=	pi.id
- AND e.id			=	pe.entry_id
- AND u.id = e.user_id
- GROUP BY e.user_id";
-
+FROM mdl_user u
+LEFT JOIN mdl_block_ilp_entry e ON u.id=e.user_id
+LEFT JOIN mdl_block_ilp_plu_ste_ent pe on e.id=pe.entry_id
+LEFT JOIN mdl_block_ilp_plu_ste_items pi on pe.parent_id=pi.id
+WHERE e.report_id='" . $targetId . "' and " . $whereSetForUserid . "
+ GROUP BY u.id";
+//         echo $query;
     $result = $DB->get_records_sql($query);
     $targets = array();
     foreach ($result as $row) {
 
         $targets[] = array(
+
             'id' => $row->id,
             'tobe' => $row->tobe,
             'achieved' => $row->achieved,
@@ -318,6 +333,8 @@ WHERE e.report_id='" . $targetId . "' and (" . $whereSetForUserid . ")
         );
     }
 
+
+//    print_r($targets);
     return $targets;
 }
 
@@ -353,7 +370,7 @@ function getMTGS2($whereSetForUserid, $DB)
     $join = " LEFT JOIN mdl_mtg m ON u.idnumber=m.student_id ";
     $where = "WHERE " . $whereSetForUserid . "";
     $query = $query . $from . $join . $where;
-            echo $query;
+//            echo $query;
     $result = $DB->get_records_sql($query);
     $mtgArray = array();
    foreach ($result as $row) {
@@ -366,24 +383,24 @@ function getMTGS2($whereSetForUserid, $DB)
         );
     }
 
-    echo '<br>MTGS<br>';
-        print_r($mtgArray);
+//    echo '<br>MTGS<br>';
+//        print_r($mtgArray);
 
     return $mtgArray;
 }
 
 
-function getFlightplanScores($studentId, $mysqli)
+function getFlightplanScores($studentId, $DB)
 {
 
     if ($studentId != '') {
         // select the last 4 reviews{}
 
-        $query = "SELECT score FROM flightplan WHERE student_id='" . $studentId . "' ORDER BY id DESC LIMIT 4";
-        //    echo $query;
-        $result = $mysqli->query($query);
+        $query = "SELECT score FROM mdl_flightplan WHERE student_id='" . trim($studentId) . "' ORDER BY date DESC LIMIT 4";
+//           echo $query;
+        $result = $DB->get_records_sql($query);
 
-        $num_rows = $result->num_rows;
+        $num_rows = count($result);
 
         $review1 = 0;
         $review2 = 0;
@@ -391,7 +408,7 @@ function getFlightplanScores($studentId, $mysqli)
         $review4 = 0;
 
         $i = $num_rows;
-        while ($row = $result->fetch_object()) {
+       foreach ($result as $row) {
 
             ${review . $i} = $row->score;
             $i--;
@@ -405,7 +422,6 @@ function getFlightplanScores($studentId, $mysqli)
             $review1, $r2, $review2, $r3, $review3, $r4, $review4
         );
 
-        //    print_r($reviews);
         return $reviews;
     }
 }
@@ -665,7 +681,6 @@ function getMarkColour($unitId, $userId, $mysqli, $type)
         } else {
             $colour = 'white';
         }
-
     }
     return $colour;
 

@@ -57,10 +57,16 @@ if ($_SESSION['course_group_session'] == 'All groups') {
 }
 
 $querystudents = $select . $from . $where . $andgroup . $and;
-echo $querystudents;
+//echo $querystudents;
 
-$resultsStudents = $DB->get_records_sql($querystudents);
-$count = 0;
+$resultsStudents = $DB->get_records_sql($querystudents); #
+
+
+// check the basic student results
+
+//foreach ($resultsStudents as $row) {
+//    echo $row->firstname . ' ' . $row->lastname . '<br>';
+//}
 
 // Reset all graph score to zero
 include('zero-scores.php');
@@ -69,10 +75,8 @@ include('zero-scores.php');
 $dateMonth = getDateMonth();
 ?>
 
-<h2>Students on this course</h2>
-
-
 <?php
+$count = 0;
 $whereSetForUserid = "";
 $activeTargets = 0;
 $targetsAchieved = 0;
@@ -122,24 +126,23 @@ foreach ($resultsStudents as $row) {
 }
 
 // cut the end of the where
-//$whereSetFor = substr($whereSetFor, 0, -3);
 $whereSetForUserid = substr($whereSetForUserid, 0, -3);
 $whereSetForUserid2 = substr($whereSetForUserid2, 0, -3);
 
-
-// set the ids this is based on the hardcoded id found from mdl_block_ilp_report
-
-
 // get the students targets
 
-$targets = getTargets2($whereSetForUserid2, $DB, $targetId);
+$targets = getTargets2($whereSetForUserid, $DB, $targetId);
 
-print_r($targets);
+//print_r($targets);
 
-$reviews = getReviews2($whereSetForUserid2, $DB, $reportsArray);
+$reviews = getReviews2($whereSetForUserid, $DB, $reportsArray);
 $rag = getRag2($whereSetForUserid2, $DB);
 $mtg = getMTGS2($whereSetForUserid, $DB);
 $lastReview = getLastReview($whereSetForUserid2, $DB, $reviewNumber);
+
+//echo '<br>student refs<br>';
+//print_r($studentRefs);
+//echo '<br>';
 
 try {
     $report = $client->__soapCall("groupReport2", array($studentRefs));
@@ -147,61 +150,61 @@ try {
     // handle issues returned by the web service
     echo ' There has been a problem getting the attendance from NG';
 }
-//echo 'dump reviews';
-var_dump($report);
+//echo '<br>dump report soap call<br>';
+//var_dump($report);
 
 //combine the student array and reviews array
 
+
+//echo '<br>hacking ont he reviews array<br>';
+//
+//print_r($reviews);
+//
+//echo '<br>';
+
+
 //var_dump($lastReview);
-foreach ($studentRefs as &$student)
-{
-    foreach ($reviews as $reviews2)
-    {
+foreach ($studentRefs as &$student) {
+    foreach ($reviews as $reviews2) {
         if ($student['id'] === $reviews2['id']) {
             $student = array_merge($student, $reviews2);
             break;
         }
     }
-    foreach ($lastReview as $lastReview2)
-    {
+    foreach ($lastReview as $lastReview2) {
         if ($student['id'] === trim($lastReview2['id'])) {
             $student = array_merge($student, $lastReview2);
             break;
         }
     }
-    foreach ($targets as $targets2)
-    {
+    foreach ($targets as $targets2) {
         if ($student['id'] === $targets2['id']) {
             $student = array_merge($student, $targets2);
             break;
         }
     }
-    foreach ($rag as $rag2)
-    {
+    foreach ($rag as $rag2) {
         if ($student['id'] === $rag2['id']) {
             $student = array_merge($student, $rag2);
             break;
         }
     }
-    foreach ($mtg as $mtg2)
-    {
+    foreach ($mtg as $mtg2) {
         if ($student['id'] === $mtg2['id']) {
             $student = array_merge($student, $mtg2);
             break;
         }
     }
-    foreach ($report as $report2)
-    {
+    foreach ($report as $report2) {
         if ($student['lref'] === trim($report2['lref'])) {
             $student = array_merge($student, $report2);
             break;
         }
     }
-
 }
 
-echo '<br>student refs<br>';
-print_r($studentRefs);
+//echo '<br>student refs - final merged set<br>';
+//print_r($studentRefs);
 
 //dump the reviews array as we don't need it anymore
 unset($reviews);
@@ -215,32 +218,37 @@ unset($lastReview);
 
 // rpint out the table headers
 ?>
+<h2>Students on this course</h2>
 <form name="process" action="process_targets2.php" method="POST">
 <table id="example" class="table table-striped" style="text-align: center;">
 <thead>
 <tr>
     <th>Name</th>
     <th>Surname</th>
+    <?php if ($ragSet == 1) { ?>
     <th>RAG</th>
+    <?php } ?>
     <th>ID</th>
     <th>Select</th>
     <th>Att %</th>
+    <?php if ($targetSet == 1) { ?>
     <th>Targets</th>
-
+    <?php } ?>
     <?php
     // print out the reports headers based on the available reports
-        foreach ($reportsArray as $key => $item) {
-            echo '<th>' . $item . '</th>';
-        }
+    foreach ($reportsArray as $key => $item) {
+        echo '<th>' . $item . '</th>';
+    }
 
-if ($mtgSet = 1) {
-    ?>
+    if ($mtgSet = 1) {
+        ?>
 
-    <th>T-MTG</th>
-    <th>P-Best</th>
-    <th>QCA</th>
-    <th>MIS MTG</th>
+        <th>T-MTG</th>
+        <th>P-Best</th>
+        <th>QCA</th>
+        <th>MIS MTG</th>
         <?php } ?>
+    <?php if ($flightplanSet == 1) { ?>
     <th>R 1</th>
     <th></th>
     <th>R 2</th>
@@ -248,14 +256,45 @@ if ($mtgSet = 1) {
     <th>R 3</th>
     <th></th>
     <th>R 4</th>
+    <?php } ?>
+    <?php if ($parentalSet == 1) { ?>
     <th>Parental</th>
-    <th>Cast</th>
-    <th>Withdrawn</th>
-    <th>Mobile</th>
-    <th>Medals</th>
-    <th>Passport</th>
-    <th>Last Review</th>
-    <th>Last Review By</th>
+    <?php
+}
+    if ($castSet == 1) {
+        ?>
+        <th>Cast</th>
+        <?php
+    }
+    if ($withdrawnSet == 1) {
+        ?>
+        <th>Withdrawn</th>
+        <?php
+    }
+    if ($mobileSet == 1) {
+        ?>
+        <th>Mobile</th>
+        <?php
+    }
+    if ($badgesSet == 1) {
+        ?>
+
+        <th>Medals</th>
+        <?php
+    }
+    if ($passportSet == 1) {
+        ?>
+        <th>Passport</th>
+        <?php }?>
+
+    <?php
+    if ($lastReviewSet == 1) {
+        ?>
+        <th>Last Review</th>
+        <th>Last Review By</th>
+        <?php
+    }
+    ?>
 
 </tr>
 </thead>
@@ -267,86 +306,45 @@ unset($report);
 //
 //
 foreach ($studentRefs as $row) {
-
-
-
-    //            Flightplan stuff
-
-    list($review1, $r2, $review2, $r3, $review3, $r4, $review4) = getFlightplanScores($row['lref'], $mysqli);
-
-    // Work out the scores for the flight plans graphs
-
-    for ($i = 1; $i <= 4; $i++) {
-        if (${'review' . $i} == 1) {
-            ${'reviewOneScore' . $i}++;
-        } elseif (${'review' . $i} == 2) {
-            ${'reviewTwoScore' . $i}++;
-        } elseif (${'review' . $i} == 3) {
-            ${'reviewThreeScore' . $i}++;
-        } elseif (${'review' . $i} == 4) {
-            ${'reviewFourScore' . $i}++;
-        } elseif (${'review' . $i} == 5) {
-            ${'reviewFiveScore' . $i}++;
-        } elseif (${'review' . $i} == 6) {
-            ${'reviewSixScore' . $i}++;
-        } elseif (${'review' . $i} == '') {
-            ${'noflight' . $i}++;
-        }
-    }
-
-    //   $badges = getMedals($row->idnumber, $mysqli);
-    $query = "SELECT icon FROM badges_link  JOIN badges ON badges_link.badge_id=badges.id  where student_id='" . $row['lref'] . "'";
-    //            echo $query;
-    $resultBadges = $mysqli->query($query);
-    $badges = array();
-    while ($row2 = $resultBadges->fetch_object()) {
-        $icon = $row2->icon;
-        array_push($badges, $icon);
-
-    }
-
-    $activeTargets = $activeTargets + $row['tobe'];
-    $targetsAchieved = $targetsAchieved + $row['achieved'];
-    $targetsWithdrawn = $targetsWithdrawn + $row['withdrawn'];
-
     ?>
+
 <tr>
-    <td><a
-        href="<?php echo $CFG->wwwroot; ?>/blocks/ilp/view.php?courseid=<?php echo $_SESSION['course_code_session']; ?>&id=<?php echo $row['id']; ?>"
-        target="_blank"><?php echo $row['firstname']; ?></a>
-    </td>
-    <td><a
-        href="<?php echo $CFG->wwwroot; ?>/blocks/ilp/view.php?courseid=<?php echo $_SESSION['course_code_session']; ?>&id=<?php echo $row['id']; ?>"
-        target="_blank"><?php echo $row['lastname']; ?></a>
-    </td>
+<td><a
+    href="<?php echo $CFG->wwwroot; ?>/blocks/ilp/actions/view_main.php?user_id=<?php echo $row['id']; ?>&course_id=<?php echo $_SESSION['course_code_session']; ?>"
+    target="_blank"><?php echo $row['firstname']; ?></a>
+</td>
+<td><a
+    href="<?php echo $CFG->wwwroot; ?>/blocks/ilp/actions/view_main.php?user_id=<?php echo $row['id']; ?>&course_id=<?php echo $_SESSION['course_code_session']; ?>"
+    target="_blank"><?php echo $row['lastname']; ?></a>
+</td>
 
     <?php if ($ragSet == 1) {
     // set the rag colour and icon
     if (($row['ragstatus'] == '3') or ($row['ragstatus'] == null)) {
-    $colour = 'green';
-    $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
-    $green++;
+        $colour = 'green';
+        $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
+        $green++;
     } elseif ($row['ragstatus'] == '2') {
-    $colour = 'amber';
-    $ragicon = '<img src="images/2Yellow_Ball.png" title="2yellow" height="20px" width="20px"/>';
-    $amber++;
+        $colour = 'amber';
+        $ragicon = '<img src="images/2Yellow_Ball.png" title="2yellow" height="20px" width="20px"/>';
+        $amber++;
     } elseif ($row['ragstatus'] == '1') {
-    $ragicon = '<img src="images/3Red_Ball.png" title="3red" height="20px" width="20px"/>';
-    $colour = 'red';
-    $red++;
+        $ragicon = '<img src="images/3Red_Ball.png" title="3red" height="20px" width="20px"/>';
+        $colour = 'red';
+        $red++;
     } else {
-    $colour = 'green';
-    $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
-    $green++;
+        $colour = 'green';
+        $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
+        $green++;
     }
 
-      ?>
-    <td><?php echo $ragicon; ?></td>
+    ?>
+<td><?php echo $ragicon; ?></td>
     <?php } ?>
 
-    <td><?php echo $row['lref']; ?></td>
-    <td><input type="checkbox" class="checkbox" name="checkbox[]" value="<?php echo $row['id']; ?>"></td>
-    <td><?php echo $row['totalAtt']; ?></td>
+<td><?php echo trim($row['lref']); ?></td>
+<td><input type="checkbox" class="checkbox" name="checkbox[]" value="<?php echo $row['id']; ?>"></td>
+<td><?php echo $row['totalAtt']; ?></td>
     <?php
     if ($row['totalAtt'] >= '100') {
         $outstanding++;
@@ -360,88 +358,166 @@ foreach ($studentRefs as $row) {
         $poor++;
     }
     ?>
-    <td><?php echo $row['tobe']; ?>/<?php echo $row['achieved']; ?>/<?php echo $row['withdrawnTarget']; ?></td>
-    <td><?php echo $row['review']; ?></td>
-    <td><?php echo $row['concern']; ?></td>
-    <td><?php echo $row['reason']; ?></td>
-    <td><?php echo $row['contribution']; ?></td>
+
+    <?php if ($targetSet == 1) { ?>
+<td><?php echo $row['tobe']; ?>/<?php echo $row['achieved']; ?>/<?php echo $row['withdrawnTarget']; ?></td>
     <?php
+    //@FIXME not right needs to work on the fly
+    // totals for the graphs
+    $activeTargets = $activeTargets + $row['tobe'];
+    $targetsAchieved = $targetsAchieved + $row['achieved'];
+    $targetsWithdrawn = $targetsWithdrawn + $row['withdrawn'];
 
-    $totalReviews = $totalReviews + $row['review'];
-    $totalConcerns = $totalConcerns + $row['concern'];
-    $totalReasons = $totalReasons + $row['reason'];
-    $totalContributions = $totalContributions + $row['contribution'];
+}
 
-    if ($row['review'] != 0) {
-        $studentsWithReviews++;
+    if ($reportsSet == 1) {
+
+        // Echoes the number of number of reports for the students and also create variables based to the available reports
+        // IE those is reports Array - 'Reports', 'Concerns' etc
+        foreach ($reportsArray as $key => $item) {
+            echo '<td>', $row[strtolower($item)], '</td>';
+//            echo ' key is: ' . $row[strtolower($item)];
+
+            // create/update the total number of X
+            ${'total' . $item} = ${'total' . $item} + $row[strtolower($item)];
+
+            // update the students with X numbers
+            if ($row[strtolower($item)] != 0) {
+                ${'studentsWith' . $item}++;
+            }
+
+//        echo 'test varible ' .   $Reviews;
+
+        }
+
+//       echo 'student with reviews: ' .  $studentsWithReviews;
     }
 
-    if ($row['concern'] != 0) {
-        $studentsWithConcerns++;
-    }
 
-    if ($row['reason'] != 0) {
-        $studentsWithReasons++;
-    }
-
-    if ($row['contribution'] != 0) {
-        $studentsWithContributions++;
-    }
-
-    ?>
-
-    <?php
     if ($mtgSet = 1) {
         ?>
 
     <td><?php echo $row['tutor_mtg']; ?></td>
     <td><?php echo $row['mtg']; ?></td>
 
-    <?php
-    // set the MTG running total for the graphs
-    if (($row['mtg'] != '') or ($row['mtg'] != null)) {
-        $mtg_set++;
-    }
-?>
+        <?php
+        // set the MTG running total for the graphs
+        if (($row['mtg'] != '') or ($row['mtg'] != null)) {
+            $mtg_set++;
+        }
+        ?>
 
     <td><?php echo $row['qca']; ?></td>
     <td><?php echo $row['mis_mtg']; ?></td>
 
-        <?php } ?>
-    <td><?php echo $review1; ?>
+        <?php
+    }
+
+    if ($flightplanSet == 1) {
+        //            Flightplan stuff
+        list($review1, $r2, $review2, $r3, $review3, $r4, $review4) = getFlightplanScores($row['lref'], $DB);
+
+        // Work out the scores for the flight plans graphs
+
+        for ($i = 1; $i <= 4; $i++) {
+            if (${'review' . $i} == 1) {
+                ${'reviewOneScore' . $i}++;
+            } elseif (${'review' . $i} == 2) {
+                ${'reviewTwoScore' . $i}++;
+            } elseif (${'review' . $i} == 3) {
+                ${'reviewThreeScore' . $i}++;
+            } elseif (${'review' . $i} == 4) {
+                ${'reviewFourScore' . $i}++;
+            } elseif (${'review' . $i} == 5) {
+                ${'reviewFiveScore' . $i}++;
+            } elseif (${'review' . $i} == 6) {
+                ${'reviewSixScore' . $i}++;
+            } elseif (${'review' . $i} == '') {
+                ${'noflight' . $i}++;
+            }
+        }
+
+        ?>
+
+    <td><?php echo $review1; ?></td>
     <td><?php echo $r2; ?></td>
     <td><?php echo $review2; ?></td>
     <td><?php echo $r3; ?></td>
     <td><?php echo $review3; ?></td>
     <td><?php echo $r4; ?></td>
     <td><?php echo $review4; ?></td>
+
+        <?php
+    }
+
+    if ($parentalSet = 1) {
+
+        ?>
     <td><?php echo checkIfTrue($row['parental']); ?></td>
-    <?php if($row['parental'] == 1) {
-    $parental_signed++;
-}   ; ?>
+        <?php if ($row['parental'] == 1) {
+            $parental_signed++;
+        }
+        ;
+    }
 
-
+    if ($castSet = 1) {
+        ?>
     <td><?php echo checkIfTrue($row['cast']); ?></td>
-    <?php if($row['cast'] == 1) {
+        <?php if ($row['cast'] == 1) {
             $cast_signed++;
-    }   ; ?>
+        }
+        ;
+    }
+    if ($withdrawnSet = 1) {
+        ?>
     <td><?php echo checkIfTrueWithNo($row['withdrawn']); ?></td>
+        <?php
+    }
+    if ($mobileSet = 1) {
+        ?>
     <td><?php echo checkIfTrue($row['mobile']); ?></td>
+        <?php }
 
+//@FIXME this is a mess - combine
+    if ($badgesSet == 1) {
+        //   $badges = getMedals($row->idnumber, $mysqli);
+        $query = "SELECT icon FROM mdl_badges_link  JOIN mdl_badges ON mdl_badges_link.badge_id=mdl_badges.id  where student_id='" . trim($row['lref']) . "'";
+//        echo $query;
+        $resultBadges = $DB->get_records_sql($query);
+        $badges = array();
+        foreach ($resultBadges as $row2) {
+            $icon = $row2->icon;
+            array_push($badges, $icon);
+        }
+        ?>
 
     <td>
         <div class="badges">
             <?php
 
             foreach ($badges as $row2) {
-                echo '<img src="' . $CFG->wwwroot . '/blocks/ilp/templates/custom/badges/images/' . $row2 . '.png" width="25" height=25" />';
+                echo '<img src="' . $CFG->wwwroot . '/blocks/ilp/custom/pix/badges/' . $row2 . '.png" width="25" height=25" />';
             } ?>
         </div>
     </td>
 
+        <?php }
+
+    if ($passportSet == 1) {
+
+        ?>
     <td><?php echo passportMedals($row['highestaward'], $row['parts']); ?></td>
-    <td><?php echo $row['date']; ?></td>
+
+        <?php }
+
+    if ($lastReviewSet == 1) {
+
+        ?>
+
     <td><?php echo $row['lastreview']; ?></td>
+    <td><?php echo $row['lastreviewdate']; ?></td>
+        <?php } ?>
+
 </tr>
     <?php $count++;
 }
@@ -495,7 +571,8 @@ foreach ($studentRefs as $row) {
 
 <div class="clearfix">
     <label for="target_name" id="target_name_title">Target Name</label>
-    <label for="target_name" id="target_name_title_progression">To progress to title !WARNING seting this will overwrite any current 'in order to progress to...' set!</label>
+    <label for="target_name" id="target_name_title_progression">To progress to title !WARNING seting this will overwrite
+        any current 'in order to progress to...' set!</label>
 
     <div class="input pad">
         <input id="target_name" type="text" name="title" size="52" class="xxlarge"/>
@@ -510,8 +587,6 @@ foreach ($studentRefs as $row) {
 <!--        <input id="target_name_progression" type="text" name="target_name_progression" size="52" class="xxlarge"/>-->
 <!--    </div>-->
 <!--</div>-->
-
-
 
 
 <div class="demo">
@@ -546,19 +621,19 @@ foreach ($studentRefs as $row) {
     <?php
     $badgeCount == 0;
 //    mysql_select_db('medals') or die('Unable to select the database');
-    $querymedals = "SELECT id, name, icon, description, category FROM badges";
-    $resultsbadges = $mysqli->query($querymedals);
+    $querymedals = "SELECT id, name, icon, description, category FROM mdl_badges";
+    $resultsBadges = $DB->get_records_sql($querymedals);
 
-    $num_rows = $resultsbadges->num_rows;
+    $num_rows = count($resultsBadges);
     //echo 'num rows: ' . $num_rows;
     echo '<h3>Select medals</h3>';
 //        echo '**Warning the student must have manual mtg set on the flightplan for medals to work**';
     echo '<table>';
-    while ($row = $resultsbadges->fetch_object()) {
+    foreach ($resultsBadges as $row) {
 
         if ($badgeCount == 0) {
             echo '<tr><td>' . $row->name . ' ';
-            echo '</td><td><img src="http://' . $domain . '/blocks/ilp/templates/custom/badges/images/' . $row->icon . '.png"/></td>';
+            echo '</td><td><img src="http://' . $domain . '/blocks/ilp/custom/pix/badges/' . $row->icon . '.png"/></td>';
             echo '<td>';
             //<input type="checkbox" id="checkbox_medal" name="checkbox_medal[]" value="' . $row['id'] . '" />';
             echo '<input type="radio" name="medal" value="' . $row->id . '"   />';
@@ -566,7 +641,7 @@ foreach ($studentRefs as $row) {
 
         } else {
             echo '<td width="20px"></td><td>' . $row->name . ' ';
-            echo '</td><td><img src="http://' . $domain . '/blocks/ilp/templates/custom/badges/images/' . $row->icon . '.png"/></td>';
+            echo '</td><td><img src="http://' . $domain . '/blocks/ilp/custom/pix/badges/' . $row->icon . '.png"/></td>';
 
             echo '<td>';
             //<input type="checkbox" id="checkbox_medal" name="checkbox_medal[]" value="' . $row['id'] . '" />';
@@ -691,179 +766,19 @@ foreach ($studentRefs as $row) {
 </div>
 
 
-  <?php
+<?php
 //echo '<h3>refds</h3>';
 //print_r($studentRefs);
-          ?>
 
-<!-- graphs and numbers -->
-<div id="totals">
-    <h1>Totals</h1>
-    <table style="text-align: center;  margin-left: auto; margin-right: auto;" class="totals">
-        <tr>
-            <th>Active Targets</th>
-            <th>Targets Achieved</th>
-            <th>Targets Withdrawn</th>
-        </tr>
-        <td><?php echo $activeTargets; ?></td>
-        <td><?php echo $targetsAchieved; ?></td>
-        <td><?php echo $targetsWithdrawn; ?></td>
-        </tr>
-    </table>
+ if ($showTotals == 1) {
+include('view_totals.php');
+}
 
-    <table style="text-align: center;  margin-left: auto; margin-right: auto;" class="totals">
-        <tr>
-            <th colspan='2'>Reviews</th>
-            <th colspan='2'>Concerns</th>
-            <th colspan='2'>Reason for Status Change</th>
-            <th colspan='2'>Contributions</th>
-        </tr>
-        <tr>
-            <th>Students with Reviews</th>
-            <th>Total Reviews</th>
-            <th>Students with Concerns</th>
-            <th>Total Concerns</th>
-            <th>Students with Reasons</th>
-            <th>Total Reasons</th>
-            <th>Students with Contributions</th>
-            <th>Total Contributions</th>
-        </tr>
-        <tr>
-            <td><?php echo $studentsWithReviews; ?></td>
-            <td><?php echo $totalReviews; ?></td>
-            <td><?php echo $studentsWithConcerns; ?></td>
-            <td><?php echo $totalConcerns; ?></td>
-            <td><?php echo $studentsWithReasons; ?></td>
-            <td><?php echo $totalReasons; ?></td>
-            <td><?php echo $studentsWithContributions; ?></td>
-            <td><?php echo $totalContributions; ?></td>
-        </tr>
-    </table>
-
-    <?php
-
-//flightplan scores 1
-    $graph1 = array(
-        $reviewOneScore1,
-        $reviewTwoScore1,
-        $reviewThreeScore1,
-        $reviewFourScore1,
-        $reviewFiveScore1,
-        $reviewSixScore1,
-        $noflight1,
-    );
+if ($showGraphs == 1) {
+    include('view_graphs.php');
+}
 
 
-    $graph2 = array(
-        $reviewOneScore2,
-        $reviewTwoScore2,
-        $reviewThreeScore2,
-        $reviewFourScore2,
-        $reviewFiveScore2,
-        $reviewSixScore2,
-        $noflight2,
-    );
-
-//flightplan scores
-    $graph3 = array(
-        $reviewOneScore3,
-        $reviewTwoScore3,
-        $reviewThreeScore3,
-        $reviewFourScore3,
-        $reviewFiveScore3,
-        $reviewSixScore3,
-        $noflight3,
-    );
-
-//flightplan scores
-    $graph4 = array(
-        $reviewOneScore4,
-        $reviewTwoScore4,
-        $reviewThreeScore4,
-        $reviewFourScore4,
-        $reviewFiveScore4,
-        $reviewSixScore4,
-        $noflight4,
-    );
-
-    ?>
-    <h1>Fancy charts of great import</h1>
-    <?php
-
-    $colours = array('#FF6600', '#FFCC00', '#FFFF00', '#33FF66', '#33CC33', '#339900', '#FF0000');
-    makePieChart($graph1, $colours, 'Review 1');
-    makePieChart($graph2, $colours, 'Review 2');
-    makePieChart($graph3, $colours, 'Review 3');
-    makePieChart($graph4, $colours, 'Review 4');
-
-
-    $graphAtt = array(
-        $outstanding,
-        $excellent,
-        $good,
-        $causeForConcern,
-        $poor,
-
-    );
-
-    $colours = array('#339900', '#33FF66', '#FFCC00', '#FF6600', '#FF0000');
-    $legend = array('Outstanding', 'Excellent', 'Good', 'Concern', 'Poor');
-    makePieChart2($graphAtt, $legend, $colours, 'Attendance');
-
-    // RAG pie charts
-    $graph = array(
-        $green,
-        $amber,
-        $red,
-    );
-
-    $colours = array('#2AFF2A', '#FFD400', '#FF0000');
-    $legend = array('Green', 'Amber', 'Red');
-    makePieChart2($graph, $legend, $colours, 'RAG Status');
-
-    $mtg_not_set = $count - $mtg_set;
-    $graph = array(
-        $mtg_set,
-        $mtg_not_set,
-    );
-
-    $colours = array('#31B131', '#FF0000');
-    $colours2 = array('#31B131', '#87AACB', '#FF0000');
-    $legend = array('MTG Set', 'MTG Not Set');
-    makePieChart2($graph, $legend, $colours, 'P-best Set');
-
-    $parental_not_signed = $count - ($parental_signed + $parental_na);
-    $graph = array(
-        $parental_signed,
-        $parental_na,
-        $parental_not_signed,
-    );
-
-    $legend = array('Signed', 'N/A', 'Not Signed');
-    makePieChart2($graph, $legend, $colours2, 'Parental Agreements');
-
-    $cast_not_signed = $count - $cast_signed;
-    $graph = array(
-        $cast_signed,
-        $cast_not_signed,
-    );
-
-    $legend = array('Support', 'No Support');
-    makePieChart2($graph, $legend, $colours, 'Cast Support');
-
-    unset($graph1);
-    unset($graph2);
-    unset($graph3);
-    unset($graph4);
-    unset($graph);
-    unset($graphAtt);
-    unset($legend);
-    unset($colours);
-    unset($colours2);
-    ?>
-</div>
-</div>
-<?php
 
 //
 ?>
@@ -971,23 +886,23 @@ foreach ($studentRefs as $row) {
                 $("#save").show();
 
             } else if ($(this).find('option:selected').val() == "In Order to Progress to...") {
-                            $("#rag").hide();
-                            $("#rag_title").hide();
-                            $("#target_name").show();
-                            $("#datepicker").hide();
-                            $("#target_name_title").hide();
-                            $("#target_name_title_progression").show();
-                            $("#target_name_progression").hide();
-                            $("#datepicker_title").hide();
-                            $("#details").hide();
-                            $("#details_title").hide();
-                            $("#checkbox").hide();
-                            $("#checkbox_title").hide();
-                            $("#medals_div").hide();
-                            $("#employability").hide();
-                            $("#save").show();
+                $("#rag").hide();
+                $("#rag_title").hide();
+                $("#target_name").show();
+                $("#datepicker").hide();
+                $("#target_name_title").hide();
+                $("#target_name_title_progression").show();
+                $("#target_name_progression").hide();
+                $("#datepicker_title").hide();
+                $("#details").hide();
+                $("#details_title").hide();
+                $("#checkbox").hide();
+                $("#checkbox_title").hide();
+                $("#medals_div").hide();
+                $("#employability").hide();
+                $("#save").show();
 
-                        } else if ($(this).find('option:selected').val() == "Medals") {
+            } else if ($(this).find('option:selected').val() == "Medals") {
 
                 $("#medals_div").show();
                 $("#target_name").hide();

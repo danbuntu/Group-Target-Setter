@@ -17,19 +17,35 @@ $targetId = '3';
 // the ID of the reviews
 
 $reportsArray = array(
-    '3' => 'Reviews',
+    '2' => 'Reviews',
     '4' => 'Concerns'
 );
 
 
 
 // Decalre the number of the PT reviews. Used to display the last review date and the person that did it
-$reviewNumber = '3';
+$reviewNumber = '2';
 
 
 
 // settings to turn features on and off - 1 = on
 $mtgSet = '1';
 $ragSet = '1';
+$flightplanSet = '1';
+$targetSet = '1';
+$badgesSet = '1';
+$lastReviewSet = 1;
+$passportSet = 1;
+$reportsSet = 1;
+$parentalSet = 1;
+$castSet = 1;
+$withdrawnSet = 1;
+$mobileSet = 1;
+
+
+//sections
+
+$showTotals = 1;
+$showGraphs = 1;
 
 ?>
