@@ -20,13 +20,15 @@ $graph->legend->SetPos(0.5, 0.99, 'center', 'bottom');
 $graph->legend->SetColumns(3);
 $graph->SetAntiAliasing();
 //$graph->SetMargin(40, 40, 20, 100);
+
 $p1 = new PiePlot3D(unserialize(urldecode($_GET['var1'])));
-$p1->SetLegends(unserialize(urldecode($_GET['var3'])));
+
+$p1->SetLegends(unserialize(urldecode(stripslashes($_GET['var3']))));
 $p1->value->Show(false);
 
 $graph->legend->SetFont(FF_ARIAL, FS_NORMAL, 8);
 $graph->Add($p1);
-$p1->SetSliceColors(unserialize(urldecode($_GET['var4'])));
+$p1->SetSliceColors(unserialize(urldecode(stripslashes($_GET['var4']))));
 $graph->Stroke();
 
 ?>

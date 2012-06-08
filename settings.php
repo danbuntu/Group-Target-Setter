@@ -41,6 +41,7 @@ $parentalSet = 1;
 $castSet = 1;
 $withdrawnSet = 1;
 $mobileSet = 1;
+$attendanceSet = 1;
 
 
 //sections

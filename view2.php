@@ -635,7 +635,6 @@ foreach ($studentRefs as $row) {
             echo '<tr><td>' . $row->name . ' ';
             echo '</td><td><img src="http://' . $domain . '/blocks/ilp/custom/pix/badges/' . $row->icon . '.png"/></td>';
             echo '<td>';
-            //<input type="checkbox" id="checkbox_medal" name="checkbox_medal[]" value="' . $row['id'] . '" />';
             echo '<input type="radio" name="medal" value="' . $row->id . '"   />';
             echo '</td>';
 
@@ -771,50 +770,30 @@ foreach ($studentRefs as $row) {
 //print_r($studentRefs);
 
  if ($showTotals == 1) {
-include('view_totals.php');
+include('view2_totals.php');
 }
 
 if ($showGraphs == 1) {
-    include('view_graphs.php');
+    include('view2_graphs.php');
 }
-
-
 
 //
 ?>
-<!--Load the javascript to control the datatable - needs to be edited when new coloumns are added-->
-
-<script src="<?php echo $CFG->wwwroot; ?>/blocks/group_targets/bootstrap2/js/dt_bootstrap.js" type="text/javascript"
-        charset="utf-8"></script>
 
 
 
 
-<script type="text/javascript">
-    $(function () {
-        $('#accordion').accordion({
-            collapsible:true
-        });
-    });
-</script>
 
-<script type="text/javascript">
+<!--<script type="text/javascript">-->
+<!--    $(function () {-->
+<!--        $('#accordion').accordion({-->
+<!--            collapsible:true-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
 
-    $(function () {
-        $("#datepicker").datepicker({
-            dateFormat:'dd-mm-yy',
-            changeMonth:true,
-            changeYear:true
-        });
-        // tl is the default so don't bother setting it's positio
-    });
+<script>
 
-
-    function toggleChecked(status) {
-        $(".checkbox").each(function () {
-            $(this).attr("checked", status);
-        })
-    }
 
     $(function () {
         //initially hide the textbox
@@ -976,4 +955,29 @@ if ($showGraphs == 1) {
     });
 
 
+//    $(function () {
+//        $("#datepicker").datepicker({
+//            dateFormat:'dd-mm-yy',
+//            changeMonth:true,
+//            changeYear:true
+//        });
+//        // tl is the default so don't bother setting it's positio
+//    });
+
+
+    function toggleChecked(status) {
+        $(".checkbox").each(function () {
+            $(this).attr("checked", status);
+        })
+    }
+
+
+
+
 </script>
+
+
+<!--Load the javascript to control the datatable - needs to be edited when new coloumns are added at the end or it breaks selection boxes-->
+
+<script src="<?php echo $CFG->wwwroot; ?>/blocks/group_targets/bootstrap2/js/dt_bootstrap.js" type="text/javascript"
+        charset="utf-8"></script>

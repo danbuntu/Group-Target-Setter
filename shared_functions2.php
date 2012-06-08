@@ -509,7 +509,7 @@ function makePieChart($array, $colours, $title)
         }
     }
 
-    echo '<img src="graphs2.php?var1=', urlencode(serialize($array)), '&var2=', $title, '&var3=', urlencode(serialize($legend)), '&var4=', urlencode(serialize($colours)), '">';
+    echo '<img src="graphs2.php?var1=', urlencode(serialize($array)), '&var2=', $title, '&var3=', urlencode(serialize($legend)), '&var4=', utf8_encode(urlencode(serialize($colours))), '">';
 }
 
 
