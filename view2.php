@@ -304,6 +304,9 @@ unset($lastReview);
 
 unset($report);
 //
+
+//print_r($studentRefs);
+
 //
 foreach ($studentRefs as $row) {
     ?>
@@ -392,7 +395,6 @@ foreach ($studentRefs as $row) {
 
 //       echo 'student with reviews: ' .  $studentsWithReviews;
     }
-
 
     if ($mtgSet = 1) {
         ?>
@@ -547,7 +549,9 @@ foreach ($studentRefs as $row) {
             <option>Medals</option>
             <option>In Order to Progress to...</option>
             <option>Progression Targets</option>
+            <?php if ($passportSet ==1) { ?>
             <option>Employability Passport</option>
+                <?php } ?>
         </select>
     </div>
 </div>
@@ -560,10 +564,14 @@ foreach ($studentRefs as $row) {
 
     <div class="input pad">
         <select name="rag" id="rag">
-            <option>--Select--</option>
-            <option>Green</option>
-            <option>Amber</option>
-            <option>Red</option>
+            <?php // get the RAG statuses in the system
+
+           $statuses = $DB->get_records('block_ilp_plu_sts_items');
+            echo '<option>--Select--</option>';
+            foreach ($statuses as $item) {
+                echo '<option value="' ,  $item->id  , '">' , $item->name , '</option>';
+            }
+            ?>
         </select>
     </div>
 </div>
@@ -594,7 +602,9 @@ foreach ($studentRefs as $row) {
         <label for="datepicker" id="datepicker_title">Select Date</label>
 
         <div class="input pad">
-            <input type="text" id="datepicker" name="date" class="xxlarge">
+<!--            <input type="text" id="datepicker" name="date" class="xxlarge">-->
+            <input class="datepicker" id="datepicker" class="span2" size="16" type="text" data-date-format="dd/mm/yyyy" name="date" value="">
+
         </div>
     </div>
 </div>
@@ -759,6 +769,9 @@ foreach ($studentRefs as $row) {
 <input id="save" class="btn btn-success" type="submit" name="submit_change" value="Submit Changes"/>
 
 </form>
+
+             <?php include('reports_forms.php'); ?>
+
 </div>
 </fieldset>
 </div>
@@ -779,18 +792,6 @@ if ($showGraphs == 1) {
 
 //
 ?>
-
-
-
-
-
-<!--<script type="text/javascript">-->
-<!--    $(function () {-->
-<!--        $('#accordion').accordion({-->
-<!--            collapsible:true-->
-<!--        });-->
-<!--    });-->
-<!--</script>-->
 
 <script>
 
@@ -971,7 +972,10 @@ if ($showGraphs == 1) {
         })
     }
 
+    $('.datepicker').datepicker(
+//        $('.hiddendate').text($('.datepicker'))
 
+    )
 
 
 </script>
