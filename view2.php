@@ -43,6 +43,7 @@ topbar('Group Target Setter'); ?>
 
 <?php
 
+
 //echo 'context session is: ' . $_SESSION['course_context_session'];
 $domain = $_SERVER['HTTP_HOST'];
 //select and show all students on this course used roleid 5 to indentify studentsserver
@@ -60,13 +61,6 @@ $querystudents = $select . $from . $where . $andgroup . $and;
 //echo $querystudents;
 
 $resultsStudents = $DB->get_records_sql($querystudents); #
-
-
-// check the basic student results
-
-//foreach ($resultsStudents as $row) {
-//    echo $row->firstname . ' ' . $row->lastname . '<br>';
-//}
 
 // Reset all graph score to zero
 include('zero-scores.php');
@@ -140,9 +134,6 @@ $rag = getRag2($whereSetForUserid2, $DB);
 $mtg = getMTGS2($whereSetForUserid, $DB);
 $lastReview = getLastReview($whereSetForUserid2, $DB, $reviewNumber);
 
-//echo '<br>student refs<br>';
-//print_r($studentRefs);
-//echo '<br>';
 
 try {
     $report = $client->__soapCall("groupReport2", array($studentRefs));
@@ -150,18 +141,6 @@ try {
     // handle issues returned by the web service
     echo ' There has been a problem getting the attendance from NG';
 }
-//echo '<br>dump report soap call<br>';
-//var_dump($report);
-
-//combine the student array and reviews array
-
-
-//echo '<br>hacking ont he reviews array<br>';
-//
-//print_r($reviews);
-//
-//echo '<br>';
-
 
 //var_dump($lastReview);
 foreach ($studentRefs as &$student) {
@@ -219,7 +198,7 @@ unset($lastReview);
 // rpint out the table headers
 ?>
 <h2>Students on this course</h2>
-<form name="process" action="process_targets2.php" method="POST">
+<form name="process" action="process_targets_new.php" method="POST">
 <table id="example" class="table table-striped" style="text-align: center;">
 <thead>
 <tr>
@@ -301,11 +280,63 @@ unset($lastReview);
 <tbody>
 
 <?php
+// the data tables plugins needs to have the coloumn data types types declared as string when outputing images or they won't be sortable
+// build the array that hold the columns and column types for the datatable to allow ordering and re-ordering
+
+$string = '{ "sType":"string" }';
+$stringn = '{ "sType":"numeric" }';
+
+$tables = "null,null";
+
+if ($ragSet == 1) {
+    $tables .= ',' . $string;
+}
+
+$tables .= ",null," . $stringn;
+
+if ($targetSet == 1) {
+    $tables .= ',' . $string;
+}
+
+// print out the reports headers based on the available reports
+foreach ($reportsArray as $key => $item) {
+    $tables .= ',null';
+}
+
+if ($mtgSet = 1) {
+    $tables .= ',null,null,null,null';
+}
+
+
+if ($flightplanSet == 1) {
+    $tables .= ',' . $stringn . ',' . $string . ',' . $stringn . ',' . $string . ',' . $stringn . ',' . $string . ',' . $stringn . ',' . $string;
+}
+
+if ($parentalSet == 1) {
+    $tables .= ',' . $string;
+}
+if ($castSet == 1) {
+    $tables .= ',' . $string;
+}
+if ($withdrawnSet == 1) {
+    $tables .= ',' . $string;
+}
+if ($mobileSet == 1) {
+    $tables .= ',' . $string;
+}
+if ($badgesSet == 1) {
+    $tables .= ',' . $string;
+}
+if ($passportSet == 1) {
+    $tables .= ',' . $string;
+}
+
+if ($lastReviewSet == 1) {
+    $tables .= ',' . 'null,null';
+}
 
 unset($report);
 //
-
-//print_r($studentRefs);
 
 //
 foreach ($studentRefs as $row) {
@@ -325,19 +356,19 @@ foreach ($studentRefs as $row) {
     // set the rag colour and icon
     if (($row['ragstatus'] == '3') or ($row['ragstatus'] == null)) {
         $colour = 'green';
-        $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
+        $ragicon = '<img src="images/1Green_Ball.png" title="green" height="20px" width="20px"/>';
         $green++;
     } elseif ($row['ragstatus'] == '2') {
         $colour = 'amber';
-        $ragicon = '<img src="images/2Yellow_Ball.png" title="2yellow" height="20px" width="20px"/>';
+        $ragicon = '<img src="images/2Yellow_Ball.png" title="yellow" height="20px" width="20px"/>';
         $amber++;
     } elseif ($row['ragstatus'] == '1') {
-        $ragicon = '<img src="images/3Red_Ball.png" title="3red" height="20px" width="20px"/>';
+        $ragicon = '<img src="images/3Red_Ball.png" title="red" height="20px" width="20px"/>';
         $colour = 'red';
         $red++;
     } else {
         $colour = 'green';
-        $ragicon = '<img src="images/1Green_Ball.png" title="1green" height="20px" width="20px"/>';
+        $ragicon = '<img src="images/1Green_Ball.png" title="green" height="20px" width="20px"/>';
         $green++;
     }
 
@@ -478,7 +509,8 @@ foreach ($studentRefs as $row) {
     if ($mobileSet = 1) {
         ?>
     <td><?php echo checkIfTrue($row['mobile']); ?></td>
-        <?php }
+        <?php
+    }
 
 //@FIXME this is a mess - combine
     if ($badgesSet == 1) {
@@ -503,14 +535,16 @@ foreach ($studentRefs as $row) {
         </div>
     </td>
 
-        <?php }
+        <?php
+    }
 
     if ($passportSet == 1) {
 
         ?>
     <td><?php echo passportMedals($row['highestaward'], $row['parts']); ?></td>
 
-        <?php }
+        <?php
+    }
 
     if ($lastReviewSet == 1) {
 
@@ -528,233 +562,6 @@ foreach ($studentRefs as $row) {
 </tbody>
 </table>
 
-<?php // select options ?>
-
-<div class="row">
-<div class="container">
-<h1>Select target type and Set</h1>
-<fieldset>
-<div class="clearfix">
-    <label for="select_review" id="review_title">Select Review</label>
-
-    <div class="input pad">
-        <select name="type" id="select_review">
-            <option>--Select--</option>
-            <option>Target</option>
-            <option>Progress Review</option>
-            <option>Concern</option>
-            <option>Reason for Status Change</option>
-            <option>Contribution</option>
-            <option>RAG - Traffic Light</option>
-            <option>Medals</option>
-            <option>In Order to Progress to...</option>
-            <option>Progression Targets</option>
-            <?php if ($passportSet ==1) { ?>
-            <option>Employability Passport</option>
-                <?php } ?>
-        </select>
-    </div>
-</div>
-
-
-<p/>
-
-<div class="clearfix">
-    <label for="rag" id="rag_title">Select RAG</label>
-
-    <div class="input pad">
-        <select name="rag" id="rag">
-            <?php // get the RAG statuses in the system
-
-           $statuses = $DB->get_records('block_ilp_plu_sts_items');
-            echo '<option>--Select--</option>';
-            foreach ($statuses as $item) {
-                echo '<option value="' ,  $item->id  , '">' , $item->name , '</option>';
-            }
-            ?>
-        </select>
-    </div>
-</div>
-
-
-<div class="clearfix">
-    <label for="target_name" id="target_name_title">Target Name</label>
-    <label for="target_name" id="target_name_title_progression">To progress to title !WARNING seting this will overwrite
-        any current 'in order to progress to...' set!</label>
-
-    <div class="input pad">
-        <input id="target_name" type="text" name="title" size="52" class="xxlarge"/>
-    </div>
-</div>
-
-
-<!--<div class="clearfix">-->
-<!--    <label for="target_name" id="target_name_title_progression">To progress to title !WARNING seting this will overwrite any current 'in order to progress to...' set!</label>-->
-<!---->
-<!--    <div class="input pad">-->
-<!--        <input id="target_name_progression" type="text" name="target_name_progression" size="52" class="xxlarge"/>-->
-<!--    </div>-->
-<!--</div>-->
-
-
-<div class="demo">
-    <div class="clearfix">
-        <label for="datepicker" id="datepicker_title">Select Date</label>
-
-        <div class="input pad">
-<!--            <input type="text" id="datepicker" name="date" class="xxlarge">-->
-            <input class="datepicker" id="datepicker" class="span2" size="16" type="text" data-date-format="dd/mm/yyyy" name="date" value="">
-
-        </div>
-    </div>
-</div>
-
-<div class="clearfix">
-    <label for="details" id="details_title">Enter Details</label>
-
-    <div class="input pad">
-        <textarea name="target" rows="8" cols="40" id="details" class="xxlarge"></textarea>
-    </div>
-</div>
-
-<div class="clearfix">
-    <label for="checkbox" id="checkbox_title">The target is related to this course</label>
-
-    <div class="input pad">
-        <input type="checkbox" id="checkbox" name="course_related" value="ON" checked/>
-    </div>
-</div>
-
-
-<div id="medals_div">
-
-    <?php
-    $badgeCount == 0;
-//    mysql_select_db('medals') or die('Unable to select the database');
-    $querymedals = "SELECT id, name, icon, description, category FROM mdl_badges";
-    $resultsBadges = $DB->get_records_sql($querymedals);
-
-    $num_rows = count($resultsBadges);
-    //echo 'num rows: ' . $num_rows;
-    echo '<h3>Select medals</h3>';
-//        echo '**Warning the student must have manual mtg set on the flightplan for medals to work**';
-    echo '<table>';
-    foreach ($resultsBadges as $row) {
-
-        if ($badgeCount == 0) {
-            echo '<tr><td>' . $row->name . ' ';
-            echo '</td><td><img src="http://' . $domain . '/blocks/ilp/custom/pix/badges/' . $row->icon . '.png"/></td>';
-            echo '<td>';
-            echo '<input type="radio" name="medal" value="' . $row->id . '"   />';
-            echo '</td>';
-
-        } else {
-            echo '<td width="20px"></td><td>' . $row->name . ' ';
-            echo '</td><td><img src="http://' . $domain . '/blocks/ilp/custom/pix/badges/' . $row->icon . '.png"/></td>';
-
-            echo '<td>';
-            //<input type="checkbox" id="checkbox_medal" name="checkbox_medal[]" value="' . $row['id'] . '" />';
-            echo '<input type="radio" name="medal" value="' . $row->id . '"   />';
-            echo '</td></tr>';
-        }
-        //        echo 'badge count is ' . $badgeCount;
-        if ($badgeCount == 0) {
-            $badgeCount = 1;
-        } elseif ($badgeCount == 1) {
-            $badgeCount = 0;
-        }
-    }
-    echo '</table>';
-    ?>
-</div>
-
-
-<div id="employability">
-    <div class="clearfix">
-        <label id="employ" accesskey="">Select employability options to mark completed</label>
-        <table style="text-align:center;">
-            <tr class="bronze">
-                <td>
-                    Bronze 1
-                </td>
-                <td>
-                    Bronze 2
-                </td>
-                <td>
-                    Bronze 3
-                </td>
-            </tr>
-            <tr class="bronze">
-                <td>
-                    Professional Standards
-                </td>
-                <td>
-                    Professional Communication
-                </td>
-                <td>
-                    Draft CV
-                </td>
-            </tr>
-            <tr class="silver">
-                <td>
-                    <input type="checkbox" id="b1" name="b1">
-                </td>
-                <td>
-                    <input type="checkbox" id="b2" name="b2">
-                </td>
-                <td>
-                    <input type="checkbox" id="b3" name="b3">
-                </td>
-            </tr>
-
-            <tr class="silver">
-                <td>Silver 1</td>
-                <td>Silver 2</td>
-                <td>Silver 3</td>
-            </tr>
-            <tr class="silver">
-                <td>Searching for a job</td>
-                <td>Employer Interview</td>
-                <td>Create a CV</td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="checkbox" id="s1" name="s1">
-                </td>
-                <td>
-                    <input type="checkbox" id="s2" name="s2">
-                </td>
-                <td>
-                    <input type="checkbox" id="s3" name="s3">
-                </td>
-
-            </tr>
-
-            <tr class="gold">
-                <td>Gold 1</td>
-                <td>Gold 2</td>
-                <td>Gold 3</td>
-            </tr>
-            <tr class="gold">
-                <td>Optional</td>
-                <td>Optional</td>
-                <td>Optional</td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="checkbox" id="g1" name="g1">
-                </td>
-                <td>
-                    <input type="checkbox" id="g2" name="g2">
-                </td>
-                <td>
-                    <input type="checkbox" id="g3" name="g3">
-                </td>
-            </tr>
-        </table>
-
-    </div>
-</div>
 
 <!-- pass the course id and userid -->
 <input type="hidden" name="courseid" value=" <?php echo $_SESSION['course_code_session'] ?> "/>
@@ -766,205 +573,54 @@ foreach ($studentRefs as $row) {
 
 <br/>
 
-<input id="save" class="btn btn-success" type="submit" name="submit_change" value="Submit Changes"/>
-
-</form>
-
-             <?php include('reports_forms.php'); ?>
-
-</div>
-</fieldset>
-</div>
-</div>
 
 
 <?php
-//echo '<h3>refds</h3>';
-//print_r($studentRefs);
+$reports = $DB->get_records('block_ilp_report');
+echo '<form action="script.php" method="get">';
+echo '<select name="reports" id="reports">';
+echo '<option>--Select a report--</option>';
+if ($ragSet == 1) {
+    ?>
+<option value="rag">RAG - Traffic Light</option>
+    <?php
+}
+if ($badgesSet == 1) {
+    ?>
+<option value="badges">Medals</option>
+    <?php
+}
+if ($passportSet == 1) {
+    ?>
+<option value="passport">Employability Passport</option>
+    <?php
+}
 
- if ($showTotals == 1) {
-include('view2_totals.php');
+foreach ($reports as $report) {
+    echo '<option value="', $report->id, '">', $report->name, '</option>';
+}
+
+echo '</select>';
+?>
+
+<input id="save" class="btn btn-success" type="submit" name="submit_change" value="Select Report"/>
+
+</form>
+
+<?php
+
+if ($showTotals == 1) {
+    include('view2_totals.php');
 }
 
 if ($showGraphs == 1) {
     include('view2_graphs.php');
-}
+} /**/
 
 //
 ?>
 
 <script>
-
-
-    $(function () {
-        //initially hide the textbox
-        $("#target_name").hide();
-        $("#target_name_title").hide();
-        $("#target_name_title_progression").hide();
-        $("#target_name_progression").hide();
-        $("#datepicker").hide();
-        $("#datepicker_title").hide();
-        $("#rag").hide();
-        $("#rag_title").hide();
-        $("#details").hide();
-        $("#details_title").hide();
-        $("#checkbox").hide();
-        $("#checkbox_title").hide();
-        $("#medals_div").hide();
-        $("#medals_title").hide();
-        $("#medal").hide();
-        $("#employability").hide();
-        $("#save").hide();
-        $('#select_review').change(function () {
-            if ($(this).find('option:selected').val() == "Target") {
-                $("#target_name").show();
-                $("#datepicker").show();
-                $("#datepicker_title").show();
-                $("#target_name_title").show();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#rag").hide();
-                $("#rag_title").hide();
-                $("#details").show();
-                $("#details_title").show();
-                $("#checkbox").show();
-                $("#checkbox_title").show();
-                $("#employability").hide();
-                $("#save").show();
-            } else if ($(this).find('option:selected').val() == "RAG - Traffic Light") {
-                $("#rag").show();
-                $("#rag_title").show();
-                $("#target_name").hide();
-                $("#datepicker").hide();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#datepicker_title").hide();
-                $("#details").show();
-                $("#details_title").show();
-                $("#checkbox").hide();
-                $("#checkbox_title").hide();
-                $("#medals_div").hide();
-                $("#employability").hide();
-                $("#save").show();
-
-            } else if ($(this).find('option:selected').val() == "Progression Targets") {
-                $("#rag").hide();
-                $("#rag_title").hide();
-                $("#target_name").hide();
-                $("#datepicker").show();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#datepicker_title").show();
-                $("#details").show();
-                $("#details_title").show();
-                $("#checkbox").hide();
-                $("#checkbox_title").hide();
-                $("#medals_div").hide();
-                $("#employability").hide();
-                $("#save").show();
-
-            } else if ($(this).find('option:selected').val() == "In Order to Progress to...") {
-                $("#rag").hide();
-                $("#rag_title").hide();
-                $("#target_name").show();
-                $("#datepicker").hide();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").show();
-                $("#target_name_progression").hide();
-                $("#datepicker_title").hide();
-                $("#details").hide();
-                $("#details_title").hide();
-                $("#checkbox").hide();
-                $("#checkbox_title").hide();
-                $("#medals_div").hide();
-                $("#employability").hide();
-                $("#save").show();
-
-            } else if ($(this).find('option:selected').val() == "Medals") {
-
-                $("#medals_div").show();
-                $("#target_name").hide();
-                $("#datepicker").hide();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#datepicker_title").hide();
-                $("#details").hide();
-                $("#details_title").hide();
-                $("#checkbox").hide();
-                $("#checkbox_title").hide();
-                $("#rag").hide();
-                $("#rag_title").hide()
-                $("#employability").hide();
-                $("#save").show();
-            } else if ($(this).find('option:selected').val() == "Employability Passport") {
-
-                $("#medals_div").hide();
-                $("#target_name").hide();
-                $("#datepicker").hide();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#datepicker_title").hide();
-                $("#details").hide();
-                $("#details_title").hide();
-                $("#checkbox").hide();
-                $("#checkbox_title").hide();
-                $("#rag").hide();
-                $("#rag_title").hide()
-                $("#employability").show();
-                $("#save").show();
-            } else if ($(this).find('option:selected').val() == "--Select--") {
-                $("#target_name").hide();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#datepicker").hide();
-                $("#datepicker_title").hide();
-                $("#rag").hide();
-                $("#rag_title").hide();
-                $("#details").hide();
-                $("#details_title").hide();
-                $("#checkbox").hide();
-                $("#checkbox_title").hide();
-                $("#medals_div").hide();
-                $("#medals_title").hide();
-                $("#medal").hide();
-                $("#employability").hide();
-                $("#save").hide();
-            } else {
-                $("#target_name").hide();
-                $("#datepicker").hide();
-                $("#target_name_title").hide();
-                $("#target_name_title_progression").hide();
-                $("#target_name_progression").hide();
-                $("#datepicker_title").hide();
-                $("#rag").hide();
-                $("#rag_title").hide();
-                $("#details").show();
-                $("#details_title").show();
-                $("#checkbox").show();
-                $("#checkbox_title").show();
-                $("#medals_div").hide();
-                $("#employability").hide();
-                $("#save").show();
-            }
-        });
-
-    });
-
-
-//    $(function () {
-//        $("#datepicker").datepicker({
-//            dateFormat:'dd-mm-yy',
-//            changeMonth:true,
-//            changeYear:true
-//        });
-//        // tl is the default so don't bother setting it's positio
-//    });
-
 
     function toggleChecked(status) {
         $(".checkbox").each(function () {
@@ -972,16 +628,113 @@ if ($showGraphs == 1) {
         })
     }
 
-    $('.datepicker').datepicker(
-//        $('.hiddendate').text($('.datepicker'))
+    /* Default class modification */
+    $.extend($.fn.dataTableExt.oStdClasses, {
+        "sWrapper":"dataTables_wrapper form-inline"
+    });
 
-    )
+    /* API method to get paging information */
+    $.fn.dataTableExt.oApi.fnPagingInfo = function (oSettings) {
+        return {
+            "iStart":oSettings._iDisplayStart,
+            "iEnd":oSettings.fnDisplayEnd(),
+            "iLength":oSettings._iDisplayLength,
+            "iTotal":oSettings.fnRecordsTotal(),
+            "iFilteredTotal":oSettings.fnRecordsDisplay(),
+            "iPage":Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength),
+            "iTotalPages":Math.ceil(oSettings.fnRecordsDisplay() / oSettings._iDisplayLength)
+        };
+    }
 
+    /* Bootstrap style pagination control */
+    $.extend($.fn.dataTableExt.oPagination, {
+        "bootstrap":{
+            "fnInit":function (oSettings, nPaging, fnDraw) {
+                var oLang = oSettings.oLanguage.oPaginate;
+                var fnClickHandler = function (e) {
+                    e.preventDefault();
+                    if (oSettings.oApi._fnPageChange(oSettings, e.data.action)) {
+                        fnDraw(oSettings);
+                    }
+                };
+
+                $(nPaging).addClass('pagination').append(
+                    '<ul>' +
+                        '<li class="prev disabled"><a href="#">&larr; ' + oLang.sPrevious + '</a></li>' +
+                        '<li class="next disabled"><a href="#">' + oLang.sNext + ' &rarr; </a></li>' +
+                        '</ul>'
+                );
+                var els = $('a', nPaging);
+                $(els[0]).bind('click.DT', { action:"previous" }, fnClickHandler);
+                $(els[1]).bind('click.DT', { action:"next" }, fnClickHandler);
+            },
+
+            "fnUpdate":function (oSettings, fnDraw) {
+                var iListLength = 5;
+                var oPaging = oSettings.oInstance.fnPagingInfo();
+                var an = oSettings.aanFeatures.p;
+                var i, j, sClass, iStart, iEnd, iHalf = Math.floor(iListLength / 2);
+
+                if (oPaging.iTotalPages < iListLength) {
+                    iStart = 1;
+                    iEnd = oPaging.iTotalPages;
+                }
+                else if (oPaging.iPage <= iHalf) {
+                    iStart = 1;
+                    iEnd = iListLength;
+                } else if (oPaging.iPage >= (oPaging.iTotalPages - iHalf)) {
+                    iStart = oPaging.iTotalPages - iListLength + 1;
+                    iEnd = oPaging.iTotalPages;
+                } else {
+                    iStart = oPaging.iPage - iHalf + 1;
+                    iEnd = iStart + iListLength - 1;
+                }
+
+                for (i = 0, iLen = an.length; i < iLen; i++) {
+                    // Remove the middle elements
+                    $('li:gt(0)', an[i]).filter(':not(:last)').remove();
+
+                    // Add the new list items and their event handlers
+                    for (j = iStart; j <= iEnd; j++) {
+                        sClass = (j == oPaging.iPage + 1) ? 'class="active"' : '';
+                        $('<li ' + sClass + '><a href="#">' + j + '</a></li>')
+                            .insertBefore($('li:last', an[i])[0])
+                            .bind('click', function (e) {
+                                e.preventDefault();
+                                oSettings._iDisplayStart = (parseInt($('a', this).text(), 10) - 1) * oPaging.iLength;
+                                fnDraw(oSettings);
+                            });
+                    }
+
+                    // Add / remove disabled classes from the static elements
+                    if (oPaging.iPage === 0) {
+                        $('li:first', an[i]).addClass('disabled');
+                    } else {
+                        $('li:first', an[i]).removeClass('disabled');
+                    }
+
+                    if (oPaging.iPage === oPaging.iTotalPages - 1 || oPaging.iTotalPages === 0) {
+                        $('li:last', an[i]).addClass('disabled');
+                    } else {
+                        $('li:last', an[i]).removeClass('disabled');
+                    }
+                }
+            }
+        }
+    });
+
+
+    /* Table initialisation */
+    $(document).ready(function () {
+        $('#example').dataTable({
+            "bPaginate":false,
+            "sDom":"<'row'<'span6'Rl><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
+            "oLanguage":{
+                "sLengthMenu":"_MENU_ records per page"
+            },
+            "aoColumns":[<?php echo $tables; ?>]
+
+        });
+    });
 
 </script>
-
-
-<!--Load the javascript to control the datatable - needs to be edited when new coloumns are added at the end or it breaks selection boxes-->
-
-<script src="<?php echo $CFG->wwwroot; ?>/blocks/group_targets/bootstrap2/js/dt_bootstrap.js" type="text/javascript"
-        charset="utf-8"></script>
