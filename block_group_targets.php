@@ -17,27 +17,22 @@ class block_group_targets extends block_base {
             return $this->content;
         }
 
+//get the course context id - probably not needed
 
-//get the course context id - probably not needed 
+//        print_r($COURSE);
+
         $courseid = $COURSE->id;
-        $context = $COURSE->context->id;
-
+//        echo 'course id' , $courseid;
+//        $context = $COURSE->context->id;
 
 // get the proper context 
-        $context2 = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+       $context2 = get_context_instance(CONTEXT_COURSE, $courseid);
 
-//used for bebugging
-//  if (has_capability('block/ilp_student_info:viewclass', $context2)) {  
-//      $allow = 1;
-//  } else {
-//      $allow = 0;
-//  }
-//
 //only display the block if the users is a teacher - ie can update the course
         if (has_capability('moodle/course:update', $context2)) {
 
 
-            $url = $CFG->wwwroot . '/blocks/group_targets/view2.php?courseid=' . $courseid . '&var1=' . $context . '';
+            $url = $CFG->wwwroot . '/blocks/group_targets/view2.php?courseid=' . $courseid . '&var1=' . $context2->id . '';
 
             $this->content = new stdClass;
             $this->content->text = '<div style="text-align: center;"><a href="' . $url . '">Update multiple PLPS';

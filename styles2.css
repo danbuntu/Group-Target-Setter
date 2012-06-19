@@ -63,7 +63,7 @@ table td {
 }
 
 #save {
-    float: right;
+
 }
 
 .bronze {
@@ -117,4 +117,9 @@ li {
 
 .badges {
     display: inline-block;
+}
+
+
+.targets {
+display: none;
 }

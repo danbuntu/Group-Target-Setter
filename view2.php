@@ -198,7 +198,7 @@ unset($lastReview);
 // rpint out the table headers
 ?>
 <h2>Students on this course</h2>
-<form name="process" action="process_targets_new.php" method="POST">
+<form name="process" action="reports.php" method="POST">
 <table id="example" class="table table-striped" style="text-align: center;">
 <thead>
 <tr>
@@ -564,10 +564,10 @@ foreach ($studentRefs as $row) {
 
 
 <!-- pass the course id and userid -->
-<input type="hidden" name="courseid" value=" <?php echo $_SESSION['course_code_session'] ?> "/>
-<input type="hidden" name="userid" value=" <?php echo $USER->id ?> "/>
-<input type="hidden" name="username" value=" <?php echo $USER->username ?> "/>
-<input type="hidden" name="groupid" value=" <?php echo trim($_SESSION['course_group_session']) ?> "/>
+<input type="hidden" name="courseid" value="<?php echo $_SESSION['course_code_session'] ?>"/>
+<input type="hidden" name="userid" value="<?php echo $USER->id ?>"/>
+<input type="hidden" name="username" value="<?php echo $USER->username ?>"/>
+<input type="hidden" name="groupid" value="<?php echo trim($_SESSION['course_group_session']) ?>"/>
 <!--    <input type="hidden" name="url" value=" --><?php //echo $url ?><!-- "/>-->
 <!--    <input type="hidden" name="url2" value=" --><?php //echo $url2 ?><!-- "/>-->
 

@@ -80,15 +80,6 @@ function getDateMonth()
 function getLastReview($whereSetForUserid2, $DB)
 {
 
-//    @FIXME this query is knarly and needs writing so that only the last review for each student is returned.
-//    $query = "select u.id, u.idnumber, timecreated, setbyuserid, u2.firstname, u2.lastname, concernset
-//   FROM mdl_ilpconcern_posts p
-//   LEFT JOIN mdl_user u ON p.setforuserid=u.id
-//   JOIN mdl_user u2 ON p.setbyuserid=u2.id
-//    WHERE (" . $whereSetForUserid . ")
-//and u.idnumber !='' and format='1' and status='0'  ORDER BY  timecreated desc";
-
-
     //@still not convinced this is the best way but at least it only returns one row per student
      $query = "SELECT e.user_id, firstname, lastname,e.timecreated FROM mdl_block_ilp_entry e
 JOIN mdl_user u ON u.id=e.creator_id
@@ -111,71 +102,6 @@ GROUP BY e.user_id
 
     return $reviewer;
 }
-
-//// Get the students review, concern etc numbers
-//function getReviews($studentMoodleId, $month_review, $month_concern, $month_reason, $month_contribs, $dateMonth, $studentsWithReviews, $studentsWithConcerns, $studentsWithReasons, $studentsWithContributions, $totalReviews, $totalConcerns, $totalReasons, $totalContributions, $mysqli)
-//{
-//    $query = "SELECT status, timemodified FROM mdl_ilpconcern_posts WHERE setforuserid='" . $studentMoodleId . "'";
-//    $result = $mysqli->query($query);
-//
-//    $review = 0;
-//    $concern = 0;
-//    $reason = 0;
-//    $contribution = 0;
-//
-//    while ($row = $result->fetch_object()) {
-//        if ($row->status == 0) {
-//            $review = $review + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $month_review = $month_review + 1;
-//            }
-//        } elseif ($row->status == 1) {
-//            $concern = $concern + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $month_concern = $month_concern + 1;
-//            }
-//        } elseif ($row->status == 2) {
-//            $reason = $reason + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $month_reason = $month_reason + 1;
-//            }
-//        } elseif ($row->status == 3) {
-//            $contribution = $contribution + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $month_contribs = $month_contribs + 1;
-//            }
-//        }
-//    }
-//
-//    if ($review !== 0) {
-//        $studentsWithReviews++;
-//    }
-//
-//    if ($concern !== 0) {
-//        $studentsWithConcerns++;
-//    }
-//
-//    if ($reason !== 0) {
-//        $studentsWithReasons++;
-//    }
-//
-//    if ($contribution !== 0) {
-//        $studentsWithContributions++;
-//    }
-//
-//    $totalReviews = $totalReviews + $review;
-//    $totalConcerns = $totalConcerns + $concern;
-//    $totalReasons = $totalReasons + $reason;
-//    $totalContributions = $totalContributions + $contribution;
-//
-//    $reviews = Array(
-//        $review, $concern, $reason, $contribution, $month_review, $month_concern, $month_reason, $month_contribs, $studentsWithReviews, $studentsWithConcerns, $studentsWithReasons, $studentsWithContributions, $totalReviews, $totalConcerns, $totalReasons, $totalContributions
-//    );
-//
-//    //    print_r($reviews);
-//    return $reviews;
-//}
-
 
 // Get the students review, concern etc numbers
 function getReviews2($whereSetForUserid, $DB, $reportsArray)
@@ -235,13 +161,8 @@ function getReviews2($whereSetForUserid, $DB, $reportsArray)
      }
 
 
-
 function getRag2($whereSetForUserid, $DB)
 {
-//    $query = "SELECT u.id, userid, status ";
-//    $from = " FROM mdl_user u ";
-//    $join = " LEFT JOIN mdl_ilpconcern_status s ON u.id=s.userid  ";
-//    $where = " WHERE " . $whereSetForUserid;
 
      $query = "SELECT * FROM mdl_block_ilp_user_status e WHERE " . $whereSetForUserid . "";
 
@@ -265,41 +186,6 @@ function getRag2($whereSetForUserid, $DB)
     return $rag;
 
 }
-
-
-//// Get the students targets
-//function getTargets($studentMoodleId, $target_month, $target_month_with, $target_month_ach, $dateMonth, $mysqli)
-//{
-//    $query = "SELECT status, timemodified FROM mdl_ilptarget_posts  WHERE setforuserid='" . $studentMoodleId . "'";
-//    //     echo $query;
-//    $tobe = 0;
-//    $achieved = 0;
-//    $withdrawn = 0;
-//    $result = $mysqli->query($query);
-//    while ($row = $result->fetch_object()) {
-//        $status = $row->status;
-//        if ($status == '0') {
-//            $tobe = $tobe + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $target_month = $target_month + 1;
-//            }
-//        } elseif ($status == '3') {
-//            $withdrawn = $withdrawn + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $target_month_with = $target_month_with + 1;
-//            }
-//        } elseif ($status == '1') {
-//            $achieved = $achieved + 1;
-//            if ($row->timemodified > $dateMonth) {
-//                $target_month_ach = $target_month_ach + 1;
-//            }
-//        }
-//    }
-//    $targets = Array(
-//        $tobe, $withdrawn, $achieved, $target_month, $target_month_with, $target_month_ach
-//    );
-//    return $targets;
-//}
 
 // Get the students targets
 function getTargets2($whereSetForUserid, $DB, $targetId)
@@ -337,30 +223,6 @@ WHERE e.report_id='" . $targetId . "' and " . $whereSetForUserid . "
 //    print_r($targets);
     return $targets;
 }
-
-//function getMTGS($studentId, $mysqli)
-//{
-//    $query = "SELECT mtg, tutor_mtg FROM moodle.mtg WHERE student_id='" . $studentId . "'";
-//    echo $query;
-//    $result = $mysqli->query($query);
-//    $mtgArray = array();
-//    while ($row = $result->fetch_object()) {
-//        echo $row->mtg . '<br/>';
-//
-//        $mtg = $row->mtg;
-//        $mtgTutor = $row->tutor_mtg;
-//        if ($mtg == null) {
-//            $mtg = 'null';
-//        }
-//        if ($mtgTutor == null) {
-//            $mtgTutor = 'null';
-//        }
-//        array_push($mtgArray, $mtg);
-//        array_push($mtgArray, $mtgTutor);
-//    }
-//    print_r($mtgArray);
-//    return $mtgArray;
-//}
 
 
 function getMTGS2($whereSetForUserid, $DB)
@@ -430,17 +292,17 @@ function getFlightplanScores($studentId, $DB)
 function compareReviews($one, $two)
 {
     if (($one == '') or ($two == '')) {
-        $reviewGraphic = '<img src="./images/list-remove.png" height"20px" width="20px">';
+        $reviewGraphic = '<img src="./images/list-remove.png" height="20px" width="20px" title="noscore">';
     } else {
         if ($two < $one) {
             //            $reviewColour = 'red';
-            $reviewGraphic = '<img src="./images/go-down.png" height"20px" width="20px">';
+            $reviewGraphic = '<img src="./images/go-down.png" height="20px" width="20px" title="down">';
         } elseif ($two > $one) {
             //            $reviewColour = 'green';
-            $reviewGraphic = '<img src="./images/go-up.png" height"20px" width="20px">';
+            $reviewGraphic = '<img src="./images/go-up.png" height="20px" width="20px" title="up">';
         } elseif ($two == $one) {
             //            $reviewColour = 'amber';
-            $reviewGraphic = '<img src="./images/go-next.png" height"20px" width="20px">';
+            $reviewGraphic = '<img src="./images/go-next.png" height="20px" width="20px" title="nochange">';
         }
     }
 

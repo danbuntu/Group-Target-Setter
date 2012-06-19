@@ -13,7 +13,6 @@
 // Found by  select * from mdl_block_ilp_report
 $targetId = '3';
 
-
 // the ID of the reviews
 
 $reportsArray = array(
@@ -21,12 +20,8 @@ $reportsArray = array(
     '4' => 'Concerns'
 );
 
-
-
 // Decalre the number of the PT reviews. Used to display the last review date and the person that did it
 $reviewNumber = '2';
-
-
 
 // settings to turn features on and off - 1 = on
 $mtgSet = '1';

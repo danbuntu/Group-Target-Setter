@@ -6,20 +6,21 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-
     <?php
 
     require_once("../../config.php");
     include('soap_connection.php');
-    global $USER, $CFG;
+    global $USER, $CFG, $DB;
+
     ?>
     <script type="text/javascript" src="./jquery2/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="./jquery2/jquery-ui-1.8.17.custom.min.js"></script>
+<!--    <script type="text/javascript" src="./jquery2/jquery-ui-1.8.17.custom.min.js"></script>-->
     <script type="text/javascript" src="./jquery2/DataTables/media/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="./jquery2/DataTables/media/js/ColReorder.min.js"></script>
 <!--    <script type="text/javascript" src="./jquery2/ColReorder.min.js"></script>-->
 <!--    <script type="text/javascript" src="./jquery2/ColVis.min.js"></script>-->
     <script type="text/javascript" src="./jquery2/jquery.multi-open-accordion-1.0.1.js"></script>
+
 
     <link rel="stylesheet" href="bootstrap2/css/bootstrap.min.css" type="text/css" media="screen"  charset="utf-8">
     <link rel="stylesheet" href="bootstrap2/css/dt_bootstrap.css" type="text/css" media="screen"  charset="utf-8">
@@ -29,17 +30,18 @@
     <link rel="stylesheet" href="styles2.css" type="text/css" media="screen"  charset="utf-8">
     <link rel="stylesheet" href="bootstrap2/css/dt_bootstrap.css" type="text/css" media="screen"
           charset="utf-8">
+    <script type="text/javascript" src="<?php $CFG->wwwroot; ?>/blocks/ilp/custom/bootstrap/datepicker/js/bootstrap-datepicker.js"></script>
+    <link href="<?php $CFG->wwwroot; ?>/blocks/ilp/custom/bootstrap/datepicker/css/datepicker.css" rel="stylesheet">
         <?php
 
-    $mysqli = new mysqli($CFG->dbhost, $CFG->dbuser, $CFG->dbpass, $CFG->dbname);
+//    $mysqli = new mysqli($CFG->dbhost, $CFG->dbuser, $CFG->dbpass, $CFG->dbname);
 
-    if ($mysqli->errno) {
-        echo 'error connecting' . $mysqli->error;
-    }
+//    if ($mysqli->errno) {
+//        echo 'error connecting' . $mysqli->error;
+//    }
 
     include'shared_functions2.php';
     include('accord_functions2.php');
-
 
     header("Expires: Tue, 03 Jul 2001 06:00:00 GMT");
     header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
@@ -55,7 +57,6 @@
     <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
 </head>
 
-
 <!--[if lt IE 9]>
 <script src="bootstrap2/html5.js"></script>
 <![endif]-->
@@ -66,7 +67,6 @@
         padding-top: 60px;
     }
 </style>
-
 
 <?php
 
@@ -87,8 +87,5 @@ if (!empty($_GET['courseid'])) {
 if (!empty($_GET['var1'])) {
     $_SESSION['course_context_session'] = $_GET['var1'];
 }
-
-
-
 
 ?>
