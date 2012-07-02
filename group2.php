@@ -1,5 +1,6 @@
 <?php
 include('top_include.php');
+global $CFG, $COURSE, $USER, $DB;
 ?>
 <div class="container">
     <?php topbar('Group Profile', $navItems); ?>
@@ -7,6 +8,12 @@ include('top_include.php');
 
 <div class="container">
 
+    <?php
+    if ($type == null) {
+        $type = $_SESSION['course_code_session'];
+    }
+
+    ?>
     <?php
     include('course_select_dropdown2.php');
     ?>
@@ -17,13 +24,10 @@ include('top_include.php');
 
     <?php
 
-    $querycoursename = "SELECT id, fullname, idnumber FROM {$CFG->prefix}course WHERE id='" . $_SESSION['course_code_session'] . "'";
+    $resultcourse = $DB->get_records('course', array('id' => $_SESSION['course_code_session']));
 
-//echo $querycoursename;
 
-    $resultcourse = $mysqli->query($querycoursename);
-
-    while ($row = $resultcourse->fetch_object()) {
+    foreach ($resultcourse as $row) {
         $courseId = $row->id;
         $groupId = $_SESSION['course_group_session'];
         $fullname = $row->fullname;
@@ -33,43 +37,30 @@ include('top_include.php');
     ?>
     <div class="noprint">
         <?php
-        showCurrentlySelectedCourse($CFG, $mysqli);
+        showCurrentlySelectedCourse($CFG, $DB);
         ?>
     </div>
 </div>
 
 <?php
-// Get the students on the course
 
-//echo 'course_context_session: ' .  $_SESSION['course_context_session'];
 
-$select = "SELECT  distinct u.idnumber ";
-$from = " FROM {$CFG->prefix}role_assignments a JOIN {$CFG->prefix}user u on a.userid=u.id LEFT JOIN {$CFG->prefix}groups_members gm ON gm.userid=a.userid";
-$where = " WHERE contextid='" . $_SESSION['course_context_session'] . "'";
-$and = " AND a.roleid='5' order by lastname";
-if ($_SESSION['course_group_session'] == 'All groups') {
-    $andgroup = " ";
-} elseif ($_SESSION['course_group_session'] != 'All groups') {
-    $andgroup = " AND gm.groupid='" . $_SESSION['course_group_session'] . "'";
+// get the course context
+$context = context_course::instance($type);
+// get the enrolled students for the course
+$students = get_enrolled_users($context, null, 0);
+
+$num_students = count($students);
+
+// re-work the students array to get just the idnumbers
+$studentArray = array();
+foreach ($students as $student) {
+    $studentArray[] = $student->idnumber;
 }
 
-$querystudents = $select . $from . $where . $andgroup . $and;
-//echo $querystudents;
-$resultstudents = $mysqli->query($querystudents);
 
-while ($row2 = $resultstudents->fetch_object()) {
-    $resultstudentsArray[] = $row2->idnumber;
-}
+$profile = $client->__soapCall("getGroupProfile", array($studentArray));
 
-//print_r($resultstudentsArray);
-$num_students = $resultstudents->num_rows;
-
-//echo $querystudents;
-//print_r($resultstudentsArray);
-
-$profile = $client->__soapCall("getGroupProfile", array($resultstudentsArray));
-
-//var_dump($profile);
 
 // get the  instance
 
@@ -80,61 +71,63 @@ $currentInstance = $year . "/" . $year + 1;
 
 // Load up the details if they already exists for the course & group
 
-if ($_SESSION['course_group_session'] == 'All Groups') {
-    $and = " AND group_id='null'";
+if ($_SESSION['course_group_session'] == 'All groups') {
+    $and = " AND group_id is NULL";
 } else {
     $and = " AND group_id='" . $_SESSION['course_group_session'] . "'";
 }
 
 //echo '<br/>';
-$query = "SELECT * FROM group_profiles WHERE course_id='" . $_SESSION['course_code_session'] . "' " . $and . "";
+$query = "SELECT * FROM {$CFG->prefix}group_profiles WHERE course_id='" . $_SESSION['course_code_session'] . "' " . $and . "";
 //echo $query;
-$result = $mysqli->query($query);
-$result = $result->fetch_array();
+$result = $DB->get_record_sql($query);
+//$result = $result->fetch_array();
 
-//print_r($result);
 
 ?>
-<form name="profile" id="profile" method="POST" action="process_groups2.php">
-<table id="example" class="table table-striped">
-    <tr>
-        <th>Moodle ID</th>
-        <td><?php echo $courseId; ?></td>
-        <th>Course Title</th>
-        <td><?php echo $fullname; ?></td>
-        <th>Group Name</th>
-        <td><?php echo $groupName; ?></td>
-        <th>Course Code</th>
-        <td><?php echo $code; ?></td>
-    </tr>
-    <tr>
-        <th>Site</th>
-        <td><select id="site" name="site">
-            <?php
-            echo '<option>--Select--</option>';
-            if ($result['site'] == 'Medway') {
-                echo '<option selected="Yes">Medway</option>';
-            } else {
-                echo '<option>Medway</option>';
-            }
+<div class="well">
+    <form name="profile" id="profile" method="POST" action="process_groups2.php">
+        <table id="example" class="table table-striped">
+            <tr>
+                <th>Moodle ID</th>
+                <td><?php echo $courseId; ?></td>
+                <th>Course Title</th>
+                <td><?php echo $fullname; ?></td>
+                <th>Group Name</th>
+                <td><?php echo $groupName; ?></td>
+                <th>Course Code</th>
+                <td><?php echo $code; ?></td>
+            </tr>
+            <tr>
+                <th>Site</th>
+                <td><select id="site" name="site">
+                    <?php
+                    echo '<option>--Select--</option>';
+                    if ($result->site == 'Medway') {
+                        echo '<option selected="Yes">Medway</option>';
+                    } else {
+                        echo '<option>Medway</option>';
+                    }
 
-            if ($result['site'] == 'Maidstone') {
-                echo '<option selected="Yes">Maidstone</option>';
-            } else {
-                echo '<option>Maidstone</option>';
-            }
-            ?>
+                    if ($result->site == 'Maidstone') {
+                        echo '<option selected="Yes">Maidstone</option>';
+                    } else {
+                        echo '<option>Maidstone</option>';
+                    }
+                    ?>
 
-        </select></td>
-        <th>Year</th>
-        <td><?php echo $year . '/' . $year2;?></td>
-        <th>Group Size</th>
-        <td><?php echo $num_students; ?></td>
-    </tr>
-</table>
+                </select></td>
+                <th>Year</th>
+                <td><?php echo $year . '/' . $year2;?></td>
+                <th>Group Size</th>
+                <td><?php echo $num_students; ?></td>
+            </tr>
+        </table>
+</div>
 
+<div class="well">
 <h3>Graphs</h3>
-<table>
+<table style="width: 100%;">
     <tr>
         <td>
 
@@ -143,6 +136,7 @@ $result = $result->fetch_array();
             $profile['female'],
             $profile['unknown'],
         );
+
 
             $colours = array('#FF2A00', '#FFCC00', '#000000');
             $legend = array('Male', 'Female', 'Unknown');
@@ -205,8 +199,15 @@ $result = $result->fetch_array();
 
             makeWithThePretty($ethnicity, $colours, $legend, 'Ethnicity', '150');
             ?>
+        </td>
+    </tr>
+    <tr>
+        <td>
             <h3>Other courses students are enrolled on in Moodle</h3>
             <?php
+
+//           var_dump($profile);
+
             foreach ($profile['Active'] as $item) {
                 echo $item . '<br/>';
             }
@@ -215,8 +216,8 @@ $result = $result->fetch_array();
         </td>
     </tr>
 </table>
-<table>
-    <th colspan="3">ICT Profiler Results</th>
+<table style="width: 100%;">
+    <th colspan="3"><h3>ICT Profiler Results</h3></th>
     </tr>
     <tr>
         <td>
@@ -284,9 +285,9 @@ $result = $result->fetch_array();
         </td>
     </tr>
 </table>
-<table>
+<table style="width: 100%;">
     <tr>
-        <th colspan="3">Numbers Profiler Results</th>
+        <th colspan="3"><h3>Numbers Profiler Results</h3></th>
     </tr>
     <tr>
         <td>
@@ -350,9 +351,10 @@ $result = $result->fetch_array();
         </td>
     </tr>
 </table>
-<table>
+
+<table style="width: 100%;">
     <tr>
-        <th colspan="3">Communication Profiler Results</th>
+        <th colspan="3"><h3>Communication Profiler Results</h3></th>
     </tr>
     <tr>
         <td>
@@ -416,85 +418,109 @@ $result = $result->fetch_array();
         </td>
     </tr>
 </table>
-<?php
-
-?>
-
-<h3>Background</h3>
-<textarea class="xxlarge" name="background" id="background"
-          style="width: 1063px; height: 165px;"><?php echo $result['background']; ?></textarea>
-
-
-<h3>Preferred Learning Styles</h3>
-
-<textarea class="xxlarge" name="learning_styles" id="learning_styles"
-          style="width: 1063px; height: 165px;"><?php echo $result['preferred_learning_styles']; ?></textarea>
-
-<!--<h3>Level of Key Skills/ Ability</h3>-->
-<!--<textarea class="xxlarge" name="level_skills" id="level_skills"-->
-<!--          style="width: 1063px; height: 165px;">--><?php //echo $result['level_of_key_skills']; ?><!--</textarea>-->
-
-<h3>Differentiation</h3>
-<?php
-
-
-foreach ($profile['differentiation'] as $item) {
-    echo $item;
-};
-
-
-?>
-
-<h2>Support Needs</h2>
-
-<h3>Particular Difficulties/ Special Needs</h3>
-<textarea class="xxlarge" name="difficulties" id="difficulties"
-          style="width: 1063px; height: 165px;"><?php echo $result['difficulties']; ?></textarea>
-
-<h3>Special Circumstances</h3>
-<textarea class="xxlarge" name="special_circumstances"
-          id="special_circumstances"
-          style="width: 1063px; height: 165px;"><?php echo $result['circumstances']; ?></textarea>
-
-<h3>Confidence/ Group Participation</h3>
-<textarea class="xxlarge" name="confidence" id="confidence"
-          style="width: 1063px; height: 165px;"><?php echo $result['confidence']; ?></textarea>
-
-<h3>How Differentiation Needs Are Being Met</h3>
-<textarea class="xxlarge" name="differentiation_needs"
-          id="differentiation_needs"
-          style="width: 1063px; height: 165px;"><?php echo $result['differentiation']; ?></textarea>
-
-
-<h2>use of Facilitators</h2>
-<textarea class="xxlarge" name="facilitators"
-          id="facilitators"
-          style="width: 1063px; height: 165px;"><?php echo $result['facilitators']; ?></textarea>
-
-<h2>Other Relevant Information</h2>
-<textarea class="xxlarge" name="other" id="other"
-          style="width: 1063px; height: 165px;"><?php echo $result['other']; ?></textarea>
-
-<h2>Completed By</h2>
-<table>
-    <tr>
-        <th> Tutor</th>
-        <td><input type="text" id="tutor" name="tutor" value="<?php echo $result['tutor']; ?>"/></td>
-        <th>Time/date</th>
-        <td><input type="text" id="datepicker" name="date"
-                   value="<?php echo date('d-m-Y', strtotime($result['date'])); ?>"/></td>
-    </tr>
-</table>
-<input type="hidden" name="course_id" id="course_id" value="<?php echo $courseId; ?>">
-<input type="hidden" name="group_id" id="group_id" value="<?php echo $groupId; ?>">
-<input type="submit" class="btn btn-success" name="submit2" value="Submit Changes">
 </div>
-</form>
+<?php
+
+?>
+<div class="well">
+    <h3>Background</h3>
+    <textarea class="xxlarge" name="background" id="background"
+              style="width: 1063px; height: 165px;"><?php echo $result->background; ?></textarea>
+
+
+    <h3>Preferred Learning Styles</h3>
+
+    <textarea class="xxlarge" name="learning_styles" id="learning_styles"
+              style="width: 1063px; height: 165px;"><?php echo $result->preferred_learning_styles; ?></textarea>
+
+    <!--<h3>Level of Key Skills/ Ability</h3>-->
+    <!--<textarea class="xxlarge" name="level_skills" id="level_skills"-->
+    <!--          style="width: 1063px; height: 165px;">-->
+    <?php //echo $result['level_of_key_skills']; ?><!--</textarea>-->
+
+
+</div>
+<div class="well">
+    <h3>Differentiation</h3>
+    <?php
+
+
+    foreach ($profile['differentiation'] as $item) {
+        echo $item;
+        echo '<hr>';
+    };
+
+
+    ?>
+</div>
+<div class="well">
+    <h2>Support Needs</h2>
+
+    <h3>Particular Difficulties/ Special Needs</h3>
+    <textarea class="xxlarge" name="difficulties" id="difficulties"
+              style="width: 1063px; height: 165px;"><?php echo $result->difficulties; ?></textarea>
+
+    <h3>Special Circumstances</h3>
+    <textarea class="xxlarge" name="special_circumstances"
+              id="special_circumstances"
+              style="width: 1063px; height: 165px;"><?php echo $result->circumstances; ?></textarea>
+
+    <h3>Confidence/ Group Participation</h3>
+    <textarea class="xxlarge" name="confidence" id="confidence"
+              style="width: 1063px; height: 165px;"><?php echo $result->confidence; ?></textarea>
+
+    <h3>How Differentiation Needs Are Being Met</h3>
+    <textarea class="xxlarge" name="differentiation_needs"
+              id="differentiation_needs"
+              style="width: 1063px; height: 165px;"><?php echo $result->differentiation; ?></textarea>
+
+
+    <h2>use of Facilitators</h2>
+    <textarea class="xxlarge" name="facilitators"
+              id="facilitators"
+              style="width: 1063px; height: 165px;"><?php echo $result->facilitators; ?></textarea>
+</div>
+<div class="well">
+    <h2>Other Relevant Information</h2>
+    <textarea class="xxlarge" name="other" id="other"
+              style="width: 1063px; height: 165px;"><?php echo $result->other; ?></textarea>
+
+
+</div>
+<div class="well">
+    <h2>Completed By</h2>
+    <table style="width: 100%;">
+        <tr>
+            <th> Tutor</th>
+            <td><input type="text" id="tutor" name="tutor" value="<?php echo $result->tutor; ?>"/></td>
+            <th>Time/date</th>
+
+            <?php if (!empty($result->date)) { ?>}
+            <td><input type="text" id="datepicker" name="date"
+                       value="<?php echo date('d-m-Y', strtotime($result->date)); ?>"/></td>
+            <td>
+                <?php } else { ?>
+            <td><input type="text" id="datepicker" name="date"
+                       value="<?php echo date('d-m-Y'); ?>"/></td>
+            <td>
+        <?php
+        }
+            ?>
+            <input type="hidden" name="course_id" id="course_id" value="<?php echo $courseId; ?>">
+            <input type="hidden" name="group_id" id="group_id" value="<?php echo $groupId; ?>">
+            <button type="submit" class="btn btn-success" name="submit2" value=""><i class="icon-white icon-ok"></i>
+                Save Report
+            </button>
+
+            </form>
+        </td>
+        </tr>
+    </table>
+</div>
+</div>
 <?php
 
 include('bottom_include.php');
-$mysqli->close;
-//mysql_close($link);
 
 ?>
 
