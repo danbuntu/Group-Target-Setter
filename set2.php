@@ -1,16 +1,17 @@
 <?php
 include('top_include.php');
+global $CFG, $COURSE, $USER, $DB;
 ?>
 <div class="container">
     <?php topbar('Change Target Status', $navItems); ?>
 </div>
 
-
 <div class="container">
+<div class="page">
 
     <?php
 
-    include ('access_context.php');
+//    include ('access_context.php');
 
     $status = $_GET['status'];
 //$USER->id = $USER->id;
@@ -32,186 +33,242 @@ include('top_include.php');
     if (isset($_POST)) {
         $status = htmlentities($_POST['status']);
     } elseif (!isset($_POST)) {
-        $status = '0';
+        $status = '';
+    }
+
+
+    if (isset($_POST['filter'])) {
+        //    echo 'course field: ' .  htmlentities($_POST['course']);
+        $_SESSION['course_code_session'] = htmlentities($_POST['course']);
+        //    echo ' course_code_session: ' . $_SESSION['course_code_session'];
     }
 
     $query = "SELECT fullname FROM " . $CFG->prefix . 'course WHERE id="' . $type . '"';
 //echo $query;
-    $result = mysql_query($query);
+    $result = $DB->get_records_sql($query);
 
 
-    while ($row = mysql_fetch_assoc($result)) {
+    foreach ($result as $row) {
         if ($type == '1') {
             $coursename = 'on all my courses';
         } else {
-            $coursename = $row['fullname'];
+            $coursename = $row->fullname;
         }
     }
-    ?>
-    <div id="page">
-        <div id="layout">
 
-            <?php
-            $_SESSION['course_code_session'];
-
-            ?>
-
-            <?php
 //List all courses the user is a teacher on and allow them to filter by them
 
-            $query = "SELECT c.id, c.fullname  FROM " . $CFG->prefix . "role_assignments ra JOIN " . $CFG->prefix . "context co ON ra.contextid=co.id JOIN " . $CFG->prefix . "course c ON co.instanceid=c.id WHERE userid='" . $USER->id . "' AND roleid='3' AND co.contextlevel='50'";
+    $query = "SELECT c.id, c.fullname  FROM " . $CFG->prefix . "role_assignments ra JOIN " . $CFG->prefix . "context co ON ra.contextid=co.id JOIN " . $CFG->prefix . "course c ON co.instanceid=c.id WHERE userid='" . $USER->id . "' AND roleid='3' AND co.contextlevel='50'";
+//    echo $query;
+    $result = $DB->get_records_sql($query);
+//    echo ' user id is ' . $USER->id;
+    $user_id = $USER->id;
+//    echo ' type is: ', $type;
+    ?>
 
-            $result = $mysqli->query($query);
-            ?>
-
+    <div class="row">
+        <div class="span12">
             <div class="row">
-                <div class="span12">
-                    <div class="row">
 
-                        <table class="table">
+                <table class="table">
 
-                            <tr>
-                                <th>Select Course:</th>
-                                <th>Select Course:</th>
-                            </tr>
-                            <tr>
-                                <td align="center">
-                                    <form name="filter" method="POST" action="set2.php">
-                                        <select name="course" id="select_type">
-                                            <option value="1">All courses</option>
+                    <tr>
+                        <th>Select Course:</th>
+                        <th>Select Target State:</th>
+                        <th>Show only targets with expired deadlines</th>
+                    </tr>
+                    <tr>
+                        <td align="center">
+                            <form name="filter" method="POST" action="set2.php">
+                                <?php
 
-                                            <?php
-                                            while ($row = $result->fetch_object()) {
-                                                //set the list to the current course
-                                                if ($type == $row->id) {
-                                                    $selected = 'selected="selected"';
-                                                } elseif ($type != $row->id) {
-                                                    $selected = ' ';
-                                                }
-                                                echo '<option ' . $selected . ' value="' . $row->id . '">' . $row->fullname . '</option>';
-                                            }
-                                            ?>
-                                        </select>
-                                </td>
-                                <td align="center">
+                                ?>
+                                <select name="course" id="select_type">
+                                    <option value="1">All courses</option>
 
                                     <?php
-                                    echo '<select name="status" id="select_status">';
-                                    if ($status == '0') {
-                                        echo '<option selected="selected" value="0">Open</option>';
-                                    } else
-                                        echo '<option value="0">Open</option>';
-
-                                    if ($status == '1') {
-                                        echo '<option selected="selected" value="1">Achieved</option>';
-                                    } else
-                                        echo '<option value="1">Achieved</option>';
-
-                                    if ($status == '3') {
-                                        echo '<option selected="selected" value="3">Withdrawn</option>';
-                                    } else
-                                        echo '<option value="3">Withdrawn</option>';
-
+                                    foreach ($result as $row) {
+                                        //set the list to the current course
+                                        if ($type == $row->id) {
+                                            $selected = 'selected="selected"';
+                                        } elseif ($type != $row->id) {
+                                            $selected = ' ';
+                                        }
+                                        echo '<option ' . $selected . ' value="' . $row->id . '">' . $row->fullname . '</option>';
+                                    }
                                     ?>
-                                    </select>
-                                    <input class="btn btn-info" name="filter" type="submit" value="Filter"/>
+                                </select>
 
-                                    </form>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+                        </td>
+                        <td align="center">
+
+                            <?php
+
+                            // get the target types
+
+                            // get the report field id for the state plugin for the target report
+                            $query = "SELECT item.id, item.name FROM mdl_block_ilp_report_field fi
+                                    JOIN mdl_block_ilp_plugin id ON fi.plugin_id=id.id
+                                    JOIN mdl_block_ilp_plu_ste ste ON fi.id=ste.reportfield_id
+                                    JOIN mdl_block_ilp_plu_ste_items item ON ste.id=item.parent_id
+                                    WHERE report_id='" . $targetId . "' AND id.name='ilp_element_plugin_state'";
+
+//                                          echo $query;
+                            $resultStates = $DB->get_records_sql($query);
+
+                            echo '<select name="status" id="select_status">';
+                            echo '<option value="0">All States</option>';
+                            foreach ($resultStates as $item) {
+                                // if the status is empty set it to the first id number from the query above
+//                                        if (empty($status)) {
+//                                        $status =  $item->id;
+//                                    }
+                                if ($status == $item->id) {
+                                    echo '<option selected="selected" value="', $item->id, '">', $item->name, '</option>';
+                                } else
+                                    echo '<option value="', $item->id, '">', $item->name, '</option>';
+                            }
+                            ?>
+                            </select>
+
+                        </td>
+                        <td>
+
+                            <select id="deadline" name="deadline">
+                                <option>All</option>
+                                <option <?php if ($_POST['deadline'] == 'Only Expired') {
+                                    echo 'selected="yes"';
+                                }; ?>>Only Expired
+                                </option>
+                            </select>
+                            <button class="btn btn-info" name="filter" type="submit" value="Filter"/>
+                            <i class="icon-tint icon-white"></i> Filter
+                            </button>
+
+                            </form>
+                        </td>
+
+                    </tr>
+                </table>
             </div>
         </div>
-
-        <?php
-
-        if ($type == '1') {
-            $query = "SELECT * from mdl_ilptarget_posts WHERE setbyuserid='" . $USER->id . "' AND status='" . $status . "'";
-        } else {
-
-            $query = "SELECT * from mdl_ilptarget_posts WHERE setbyuserid='" . $USER->id . "' AND status='" . $status . "' AND targetcourse='" . $type . "'";
-        }
-
-//  echo $query;
-        $result = $mysqli->query($query);
-
-        while ($row = $result->fetch_object()) {
-            echo '<form name="targets" method="POST" action="process.php">';
-            echo '<table style="width: 100%;" border="1">';
-            // echo $row['setforuserid'] . '</td>';
-            //get the user name form their id
-            $queryname = "SELECT id, firstname, lastname FROM mdl_user WHERE id='" . $row->setforuserid . "'";
-            $resultname = $mysqli->query($queryname);
-
-
-            while ($row2 = $resultname->fetch_object()) {
-                $id = $row->id;
-                echo '<th>Id</th><td>' . $row->id . '</td><th>Student name: </th><td>' . $row2->firstname . ' ' . $row2->lastname . '</td>';
-            }
-
-            echo '<th>Deadline: </th><td>' . date("d-M-Y", $row->deadline) . '</td></tr>';
-            echo '<tr><th>Target Name:</th><td colspan="5">Target Name: ' . $row->name . '</td></tr>';
-            echo '<tr><th>Target: </th><td colspan="5">' . $row->targetset . '</td></tr>';
-            echo '<tr><td colspan="6" style="text-align: right;" colspan="3">';
-            echo 'Select* <input type="checkbox" name="mark[]" value="' . $id . '" />';
-            echo '</td></tr></table>';
-            echo '</br>';
-        }
-        ?>
-        <!-- pass the course id and userid -->
-        <input type="hidden" name="courseid" value=" <?php echo $type ?> "/>
-        <input type="hidden" name="userid" value=" <?php echo $USER->id ?> "/>
-        <input type="hidden" name="url" value=" <?php echo $url ?> "/>
-        <input type="hidden" name="url2" value=" <?php echo $url2 ?> "/>
-        <input type="hidden" name="status" value=" <?php echo $status ?> "/>
-
-        <table style="width: 100%; text-align: right;">
-            <tr>
-                <th>Select type to change target to:</th>
-                <td style="width: 400px;">
-
-                    <div id="radio">
-                        <input type="radio" id="radio1" name="mark_as" value="0"/><label for="radio1">Open</label>
-                        <input type="radio" id="radio2" name="mark_as" value="1"/><label for="radio2">Achieved</label>
-                        <input type="radio" id="radio3" name="mark_as" value="3"/><label for="radio3">Withdrawn</label>
-                    </div>
-                </td>
-                <td>
-                    <input class="btn btn-success" id="save" type="submit" value="Save Changes"/>
-                </td>
-            </tr>
-        </table>
-
-        <div class="demo">
-
-        </div>
-        </form>
     </div>
-</div>
-</div>
 </div>
 
 <?php
-include('jscripts2.php');
+
+foreach ($context as $item) {
+    $context = $item->id;
+}
+
+?>
+<div>
+    <?php
+    showCurrentlySelectedCourse($CFG, $DB);
+    ?>
+</div>
+
+<?php
+// get the course context
+$context = context_course::instance($type);
+// get the enrolled students for the course
+$students = get_enrolled_users($context, null, 0);
+
 ?>
 
-<!--Script to run the submit button graphic - doesn't work when added tot he main js script files-->
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('#save').hover(function () {
-            $(this).addClass('mhover')
-        }, function () {
-            $(this).removeClass('mhover');
+<!--<form method="POST" action="process_targets.php">-->
+
+<?php
+
+// get all the targets set by the current user for each user on the selected course
+include('get_targets.php');
+// loop thorugh each student and grab their targets
+foreach ($students as $student) {
+    echo '<div class="well">';
+    echo '<h3>Targets for: ', $student->firstname, ' ', $student->lastname . '</h3>';
+    $reports = new get_targets($student->id, $_SESSION['course_code_session']);
+    echo   $reports->display($targetId, $status);
+    echo '</div>';
+
+}
+
+//        ?>
+
+
+<div id="sideblock" class="alert">
+<form method="POST" action="process_set.php" name="statusset" id="statusset">
+    <!-- pass the course id and userid -->
+    <input type="hidden" name="courseid" value=" <?php echo $type ?> "/>
+    <input type="hidden" name="userid" value=" <?php echo $USER->id ?> "/>
+    <input type="hidden" name="url" value=" <?php echo $url ?> "/>
+    <input type="hidden" name="url2" value=" <?php echo $url2 ?> "/>
+    <input type="hidden" name="status" value=""/>
+    <input type="hidden" name="statusname" value=""/>
+    <input type="hidden" name="users" value=""/>
+
+            <h4>Change selected targets to:</h4>
+
+
+                <div class="btn-group" data-toggle="buttons-radio" data-toggle-name="status" id="status" name="status">
+                    <?php
+
+                    foreach ($resultStates as $item) {
+
+                        echo '<button class="btn" value="', $item->id, '">', $item->name, '</button>';
+                    }
+                    ?>
+                </div>
+
+    </table>
+
+
+    <!--    <div class="here">here</div>-->
+
+</form>
+</div>
+</div>
+
+<script>
+
+    //Remove all the options on the targets select dropdowns that aren't selected
+    //    This is to stop the list being used
+    //@FIXME this is a fudge, there must be a better way
+    $(".select option[selected!='selected']").remove();
+
+
+    // when a box is ticked we add it to the hideen value in the form so that we can process it
+    // this is a kludge to get round the fact that we can't override the forms created by the plp classes.
+    $(".checkbox").change(function () {
+        var htmls = "";
+        $('input[type="checkbox"]:checked').each(
+            function () {
+                htmls += $(this).val() + ",";
+//                $('.here').html(htmls);
+
+                $('[name=users]').val(htmls);
+            }
+
+        );
+    });
+
+      // get the status value of the button pressed and sets it as a hidden value so that the form can send it for processing.
+    $('div.btn-group[data-toggle-name=*]').each(function(){
+        var group   = $(this);
+        var form    = group.parents('form').eq(0);
+        var name    = group.attr('data-toggle-name');
+        var hidden  = $('input[name="' + name + '"]', form);
+        var hidden2  = $('input[name="' + name + 'name"]', form);
+        $('button', group).each(function(){
+            var button = $(this);
+            button.live('click', function(){
+                hidden.val($(this).val());
+                hidden2.val($(this).text());
+            });
+            if(button.val() == hidden.val()) {
+                button.addClass('active');
+            }
         });
-    })
-
-    $(function () {
-        $("#radio").buttonset();
     });
 
-    $(function () {
-        $("#tabs").tabs();
-    });
+
 </script>

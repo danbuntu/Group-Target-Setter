@@ -7,7 +7,7 @@
     <meta name="author" content="">
 
     <?php
-
+    include('settings.php');
     require_once("../../config.php");
     include('soap_connection.php');
     global $USER, $CFG, $DB;
@@ -73,8 +73,8 @@
 // set session variables
 
 // set the academic year if needed as a session varible
-if (empty($_SESSION['academicYear'])) {
-    $resultAtt = $client->__soapCall("getAcademicYear", array(''));
+if (empty($_SESSION['academicYear'])) {   $resultAtt = $client->__soapCall("getAcademicYear", array(''));
+
     foreach ($resultAtt as $item) {
         $_SESSION['academicYear'] = $item['academicyear'];
     }

@@ -1,5 +1,4 @@
 <?php
-include('settings.php');
 include('top_include.php');
 
 topbar('Group Target Setter'); ?>
@@ -60,7 +59,7 @@ if ($_SESSION['course_group_session'] == 'All groups') {
 $querystudents = $select . $from . $where . $andgroup . $and;
 //echo $querystudents;
 
-$resultsStudents = $DB->get_records_sql($querystudents); #
+$resultsStudents = $DB->get_records_sql($querystudents);
 
 // Reset all graph score to zero
 include('zero-scores.php');

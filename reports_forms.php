@@ -1,12 +1,13 @@
 <?php
 
-// copied form the ilp block
+// copied from the ilp block
 //require the reportentry_mform so we can display the report
 //echo ' rep id 1 ', $report_id;
 require_once("../../config.php");
 require_once($CFG->dirroot . '/blocks/ilp/db/ilp_db.php');
 require_once($CFG->dirroot . '/blocks/ilp/classes/ilp_formslib.class.php');
 require_once($CFG->dirroot . '/blocks/group_targets/reportentry_mform_groups.php');
+
 ?>
 <link rel="stylesheet" type="text/css"
       href="<?php $CFG->wwwroot; ?>/theme/styles_debug.php?theme=aardvark&amp;type=parent&amp;subtype=base&amp;sheet=core"/>
