@@ -145,14 +145,14 @@ WHERE unitid='" . $critId . "'";
     <div class="modal hide" id="Add_crit_<?php echo $row->id; ?>">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">×</button>
-            <h3>Add a new unit criteria for <?php echo $critName; ?></h3>
+            <h3>Add a new criterion for <?php echo $critName; ?></h3>
         </div>
         <div class="modal-body">
 
             <form class="well" action="edit_crits2.php?courseId=<?php echo $_GET['courseId']; ?>" method="POST">
-                <label class="control-label" for="unitName">Unit name</label>
+                <label class="control-label" for="unitName">Criterion name</label>
                 <input class="input-xlarge" type="text" name="unitName" id="unitName"/>
-                <label class="control-label" for="unitDescription">Unit Description</label>
+                <label class="control-label" for="unitDescription">Criterion Description</label>
                 <textarea  class="input-xlarge" name="unitDescription" id="unitDescription"></textarea>
 
                 <?php
@@ -160,7 +160,7 @@ WHERE unitid='" . $critId . "'";
 //                                $query = "SELECT id, type FROM unit_tracker_marks_criteria";
                 $resultMarks = $DB->get_records('unit_tracker_marks_criteria');
                 ?>
-                <label class="control-label" for="marking">Unit Marking Scheme</label>
+                <label class="control-label" for="marking">Criterion Marking Scheme</label>
                 <?php
                 echo '<select name="marking" id="marking">';
                 foreach ($resultMarks as $mark) {

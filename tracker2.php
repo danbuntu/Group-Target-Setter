@@ -42,7 +42,11 @@ include('top_include.php');
 
                     if (count($resultEdit) >= 1) {
                         echo '<b>The course exists in the tracker</b><br>';
-
+                     ?>
+           <br> <a class="btn btn-warning" href="edit_units2_2.php?courseId=<?php echo $courseId; ?>" >
+                <i class="icon-pencil icon-white"></i> Show / Edit Units & Criterias
+                            </a>
+                              <?php
                     } else {
                         echo '<font color="red"><b>This course hasn\'t been set up for unit tracking. Please wait while we set it up</b></font>';
 
@@ -115,27 +119,8 @@ if ($check == 1) {
 
 ?>
 
-<table>
-    <tr>
-        <td style="text-align: left;">
             <h1>Course Unit/ Subject Tracker 2 *Beta V2*</h1>
 
-        </td>
-        <td style="text-align: right;" width="15%">
-<!--            <button class="btn btn-warning" data-toggle="collapse" data-target="#unitsDiv">-->
-<!--                <i class="icon-pencil icon-white"></i> Show / Edit Unit Criteria-->
-<!--            </button>   -->
-            <a class="btn btn-warning" href="edit_units2_2.php?courseId=<?php echo $courseId; ?>" >
-                <i class="icon-pencil icon-white"></i> Show / Edit Unit Criteria
-            </a>
-        </td>
-    </tr>
-</table>
-
-
-<!--<div id="unitsDiv" class="collapse">-->
-<!--    --><?php //include('edit_units2_2.php'); ?>
-<!--</div>-->
 <div class="container-fluid">
 
 
@@ -214,7 +199,7 @@ echo '<br/>';
 echo '<br/>';
 echo '<form name="process" method="POST" action="process_tracker2.php">';
 echo '<input type="hidden" name="courseCode" value="', $_SESSION['course_ref_session'], '"/>';
-echo '<table class="table table-striped" id="examplex" style="text-align: center;">';
+echo '<table class="table table-striped" id="tracker" style="text-align: center;">';
 echo '<thead><tr><th class="header1">Firstname</th><th class="header1">Lastname</th><th class="header1">Learner Ref</th><th class="header1">Report</th>';
 
 
@@ -357,6 +342,8 @@ include('bottom_include.php');
 ?>
 
 <script>
+
+
     // Drive the checkboxes to hide the unit detials
     $(window).load(function () {
         $("input:checkbox:not(:checked)").each(function () {
@@ -369,4 +356,5 @@ include('bottom_include.php');
             $(column).toggle();
         });
     });
+
 </script>
