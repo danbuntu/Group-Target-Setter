@@ -545,7 +545,9 @@ function getMarkColour($unitId, $userId, $DB, $type, $CFG)
             $colour = 'white';
         }
     }
+    if (!empty($colour)) {
     return $colour;
+    }
 
 }
 

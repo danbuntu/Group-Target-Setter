@@ -191,7 +191,7 @@ echo '</td></tr></table>';
 echo '<table class="table"><tr><th>Show/ hide units</th>';
 $col = 1;
 foreach ($course as $key => $value) {
-    echo '<th class="unit_name"><input type=checkbox name="ucol', $col, '" checked>', $value[unit_name], '</th>';
+    echo '<th class="unit_name"><input type=checkbox name="ucol', $col, '" checked>', $value['unit_name'], '</th>';
 
     $col++;
 }
@@ -201,7 +201,7 @@ echo '</tr>';
 echo '<tr><th>Show/ hide unit criteria</th>';
 $col = 1;
 foreach ($course as $key => $value) {
-    echo '<th class="show_units crit_target"><input type=checkbox name="tcol', $col, '" >', $value[unit_name], '</th>';
+    echo '<th class="show_units crit_target"><input type=checkbox name="tcol', $col, '" >', $value['unit_name'], '</th>';
 
     $col++;
 }
@@ -221,7 +221,7 @@ echo '<thead><tr><th class="header1">Firstname</th><th class="header1">Lastname<
 //  print out the criteria headers
 $colId = 1;
 foreach ($course as $key => $value) {
-    echo '<th class="unit_name ucol', $colId, '" name="ucol', $colId, '">' . $value[unit_name] . '</th>';
+    echo '<th class="unit_name ucol', $colId, '" name="ucol', $colId, '">' . $value['unit_name'] . '</th>';
 
     $critCol = 1;
     foreach ($value as $iKey => $iValue) {
@@ -230,7 +230,7 @@ foreach ($course as $key => $value) {
         // Knock out the duff results based on stings 1 character long and count the number of criterias
         //        $num_char = strlen($iValue[Crit_name]);
 //        echo $num_char;
-        if (strlen($iValue[Crit_name]) > 1) {
+        if (strlen($iValue['Crit_name']) > 1) {
             $critCount++;
 
             if ($critCol == 1) {
@@ -240,7 +240,7 @@ foreach ($course as $key => $value) {
                 $critClass = 'crit_target2';
                 $critCol = 1;
             }
-            echo '<th class="' . $critClass . ' tcol', $colId, '" name="tcol', $colId, '">' . $iValue[Crit_name] . '</th>';
+            echo '<th class="' . $critClass . ' tcol', $colId, '" name="tcol', $colId, '">' . $iValue['Crit_name'] . '</th>';
         }
     }
     $colId++;
@@ -264,7 +264,7 @@ foreach ($students as $row) {
     // get all the students units and stuff
     // Has to have u.id as the first option as this is a unqiue unit id, else moodle groups everything into one row
 
-    $query = "select u.id, uc.learner_ref, uc.employer, uc.rep_name, uc.employer_id as employerid ,uc.training_centre, uc.programme_start_date, uc.officer,
+    $query = "SELECT  u.id, uc.learner_ref, uc.employer, uc.rep_name, uc.employer_id as employerid ,uc.training_centre, uc.programme_start_date, uc.officer,
 c.course_code, c.coursename,
 u.id as unit_id, u.name as unit_name, u.description, u.markid,
 um.id as mark_id, um.type as mark_type,
@@ -284,7 +284,10 @@ LEFT JOIN {$CFG->prefix}unit_tracker_marks_criteria mc ON uuc.markid=mc.id
 
 where uc.moodle_id='" . $row->id . "' AND c.moodle_id='" . $courseId . "'";
 //                echo '<br>' ,  $query , '<br>';
+
+
     $resultUnits = $DB->get_records_sql($query);
+
     $unitName = '';
     $colId = 0;
     $id = 1;
