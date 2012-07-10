@@ -8,6 +8,7 @@
  */
 include('top_include.php');
 
+
 echo '<h1><font color="red">Processing information hold tight</font></h1>';
 
 $courseCode = $_POST['courseCode'];
@@ -19,11 +20,11 @@ $unit2 = $_POST['unit2'];
 $unitCode1 = $_post['unitcode1'];
 
 $unitName = $_POST['unitName'];
-print_r($unitName);
+//print_r($unitName);
 echo $courseCode;
 echo '</br>';
 echo '</br>';
-//print_r($learner);
+print_r($learner);
 echo '</br>';
 echo '</br>';
 echo ' unitcode: ' , $unitCode1;
@@ -39,55 +40,57 @@ echo ' unitcode: ' , $unitCode1;
 echo '<h1>Print the units</h1>';
 foreach ($unitName as $value) {
 
-    echo $value['learnerId'] , ' ' , $value['id'] , ' ' , $value['select'] , ' ' , $value['unit'];
+    echo 'lid: ' , $value['learnerId'] , ' ' , ' id' , $value['id'] , ' ' , $value['select'] , ' ' , $value['unit'];
           if ($value['unit'] == 'unit') {
               echo ' a unit </br>';
 
               // test for a record already existing
-              $query = "SELECT * FROM unit_tracker_user_units WHERE unit_id='" . $value['id'] . "' AND user_id='" . $value['learnerId'] . "'";
+              $query = "SELECT * FROM mdl_unit_tracker_user_units WHERE unit_id='" . $value['id'] . "' AND moodle_id='" . $value['learnerId'] . "'";
               echo $query;
-              $resultUnits = $mysqli->query($query);
+              $resultUnits = $DB->get_records_sql($query);
 //            $num_rows_update = $mysqli->num_rows($result);
     
 //              echo 'num row: ' . $num_rows_update;
-              echo 'rows: ' . $resultUnits->num_rows;
-              if ($resultUnits->num_rows >= 1 ) {
+//              echo 'rows: ' . $resultUnits->num_rows;
+              if (count($resultUnits) >= 1 ) {
                   echo 'hit';
-                  $queryUpdate = "UPDATE unit_tracker_user_units SET target='" . $value['select'] . "', colour='" . getColour($value['id'], $value['select'], 'units', $mysqli) . "' WHERE unit_id='" . $value['id'] . "' AND user_id='" . $value['learnerId'] . "'";
+                  $queryUpdate = "UPDATE mdl_unit_tracker_user_units SET target='" . $value['select'] . "', colour='" . getColour($value['id'], $value['select'], 'units', $DB, $CFG) . "' WHERE unit_id='" . $value['id'] . "' AND moodle_id='" . $value['learnerId'] . "'";
                   echo $queryUpdate;
-                  $mysqli->query($queryUpdate);
+                  $DB->execute($queryUpdate);
               } else {
-                  echo 'hit2';
-                    $queryInsert = "INSERT INTO unit_tracker_user_units (unit_id, user_id, target, colour) VALUES ('" . $value['id'] . "','" . $value['learnerId'] . "','" . $value['select'] . "','" . getColour($value['id'], $value['select'], 'units', $mysqli) . "')";
-                    echo $queryInsert;
-                  $mysqli->query($queryInsert);
+                  echo 'hit2ww';
+                  echo 'test2';
+                    $queryInsert = "INSERT INTO mdl_unit_tracker_user_units (unit_id, target, colour, moodle_id) VALUES ('" . $value['id'] . "','" . $value['select'] . "','" . getColour($value['id'], $value['select'], 'units', $DB, $CFG) . "','" . $value['learnerId'] . "')";
+                  echo 'test';
+                  echo $queryInsert;
+                  $DB->execute($queryInsert);
               }
 
           } else {
               echo ' a criteria </br>';
 
  // test for a record already existing
-              $query = "SELECT * FROM unit_tracker_user_criteria WHERE criteria_id='" . $value['id'] . "' AND user_id='" . $value['learnerId'] . "'";
+              $query = "SELECT * FROM mdl_unit_tracker_user_criteria WHERE criteria_id='" . $value['id'] . "' AND moodle_id='" . $value['learnerId'] . "'";
               echo $query;
-              $result = $mysqli->query($query);
+              $result = $DB->get_records_sql($query);
 //            $num_rows_update = $mysqli->num_rows($result);
 
 //              echo 'num row: ' . $num_rows_update;
-              if ($result->num_rows >= 1 ) {
-                  $queryUpdate = "UPDATE unit_tracker_user_criteria SET target='" . $value['select'] . "', colour='" . getColour($value['id'], $value['select'], 'criteria', $mysqli) . "' WHERE criteria_id='" . $value['id'] . "' AND user_id='" . $value['learnerId'] . "'";
+              if (count($result) >= 1 ) {
+                  $queryUpdate = "UPDATE mdl_unit_tracker_user_criteria SET target='" . $value['select'] . "', colour='" . getColour($value['id'], $value['select'], 'criteria', $DB, $CFG) . "' WHERE criteria_id='" . $value['id'] . "' AND moodle_id='" . $value['learnerId'] . "'";
                   echo $queryUpdate;
-                  $mysqli->query($queryUpdate);
+                  $DB->execute($queryUpdate);
               } else {
-                    $queryInsert = "INSERT INTO unit_tracker_user_criteria (criteria_id, user_id, target, colour) VALUES ('" . $value['id'] . "','" . $value['learnerId'] . "','" . $value['select'] . "','" . getColour($value['id'], $value['select'], 'criteria', $mysqli) . "')";
+                    $queryInsert = "INSERT INTO mdl_unit_tracker_user_criteria (criteria_id, user_id, target, colour, moodle_id) VALUES ('" . $value['id'] . "','" . $value['learnerId'] . "','" . $value['select'] . "','" . getColour($value['id'], $value['select'], 'criteria', $DB, $CFG) . "','" . $value['learnerId'] . "')";
                     echo $queryInsert;
-                  $mysqli->query($queryInsert);
+                  $DB->execute($queryInsert);
               }
 
 
           }
 
 }
-$mysqli->close();
+
 
 echo '<meta http-equiv="refresh" content="0; url=/blocks/group_targets/tracker2.php">';
 

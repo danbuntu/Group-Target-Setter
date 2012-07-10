@@ -8,6 +8,7 @@
  */
 
 include('top_include.php');
+global $CFG, $COURSE, $USER, $DB;
 ?>
 <div class="container-fluid">
     <?php
@@ -26,29 +27,32 @@ include('top_include.php');
 //echo ' session course id is ' . $_SESSION['courseid'];
 
     if (isset($_POST['deleteUnit'])) {
-        $query = "DELETE FROM unit_tracker_units WHERE id='" . $_POST['id'] . "'";
+        $query = "DELETE {$CFG->prefix}FROM unit_tracker_units WHERE id='" . $_POST['id'] . "'";
         //    echo $query;
-        $mysqli->query($query);
+        $DB->execute($query);
     }
 
     if (isset($_POST['updateUnit'])) {
-        $query = "UPDATE unit_tracker_units set markid='" . $_POST['marking'] . "', name='" . $_POST['unitName'] . "', description='" . $_POST['unitDescription'] . "' WHERE id='" . $_POST['unitId'] . "'";
+        $query = "UPDATE {$CFG->prefix}unit_tracker_units set markid='" . $_POST['marking'] . "', name='" . $_POST['unitName'] . "', description='" . $_POST['unitDescription'] . "' WHERE id='" . $_POST['unitId'] . "'";
         //    echo $query;
-        $mysqli->query($query);
+        $DB->execute($query);
     }
 
     if (isset($_POST['add_new_unit'])) {
-        $query = "INSERT INTO unit_tracker_units (name, description, courseid, markid) VALUES ('" . $_POST['unitName'] . "','" . $_POST['unitDescription'] . "','" . $_SESSION['courseid'] . "','" . $_POST['marking'] . "')";
+        $query = "INSERT INTO mdl_unit_tracker_units (name, description, courseid, markid) VALUES ('" . $_POST['unitName'] . "','" . $_POST['unitDescription'] . "','" . $courseId . "','" . $_POST['marking'] . "')";
         //    echo $query;
-        $mysqli->query($query);
+        $DB->execute($query);
     }
 
 
 // Get the course title
-    $query = "SELECT coursename FROM unit_tracker_courses WHERE id='" . $_SESSION['courseid'] . "'";
-    $result = $mysqli->query($query);
+//    $query = "SELECT coursename FROM unit_tracker_courses WHERE id='" . $_SESSION['courseid'] . "'";
+//    $result = $mysqli->query($query);
 
-    while ($row = $result->fetch_object()) {
+
+    $result = $DB->get_records('unit_tracker_courses', array('id' => $_SESSION['courseid']));
+
+    foreach ($result as $row) {
         $courseName = $row->coursename;
     }
     ?>
@@ -63,11 +67,11 @@ include('top_include.php');
 
                 <?php
 
-                $query = "SELECT unit_tracker_units.id, name, courseid, description, markid, unit_tracker_marks.id as markid2, type
-FROM unit_tracker_units JOIN unit_tracker_marks ON unit_tracker_units.markid=unit_tracker_marks.id
+                $query = "SELECT {$CFG->prefix}unit_tracker_units.id, name, courseid, description, markid, {$CFG->prefix}unit_tracker_marks.id as markid2, type
+FROM {$CFG->prefix}unit_tracker_units JOIN {$CFG->prefix}unit_tracker_marks ON {$CFG->prefix}unit_tracker_units.markid={$CFG->prefix}unit_tracker_marks.id
 WHERE courseid='" . $_SESSION['courseid'] . "'";
 //echo $query;
-                $result = $mysqli->query($query);
+                $result = $DB->get_records($query);
                 ?>
                 <table>
                     <tr>
@@ -79,7 +83,7 @@ WHERE courseid='" . $_SESSION['courseid'] . "'";
                         <th></th>
                     </tr>
                     <?php
-                    while ($row = $result->fetch_object()) {
+                    foreach ($result as $row) {
                         ?>
 
                         <tr>
@@ -99,12 +103,12 @@ WHERE courseid='" . $_SESSION['courseid'] . "'";
 
                                 <?php
                                 //            echo ' markid ' . $row->markid;
-                                $queryMark = "SELECT id, type FROM unit_tracker_marks";
+                                $queryMark = "SELECT id, type FROM {$CFG->prefix}unit_tracker_marks";
                                 //                        echo $queryMark;
-                                $resultMark = $mysqli->query($queryMark);
+                                $resultMark = $DB->get_records($queryMark);
 
                                 echo '<select name="marking"/>';
-                                while ($rowMark = $resultMark->fetch_object()) {
+                                foreach ($resultMark as $rowMark) {
 
                                     if ($rowMark->id == $row->markid) {
                                         $selected = 'selected="selected" ';
@@ -161,10 +165,10 @@ WHERE courseid='" . $_SESSION['courseid'] . "'";
                             <td>
                                 <?php
 // Get possbile marking scehemes
-                                $query = "SELECT id, type FROM unit_tracker_marks";
-                                $result = $mysqli->query($query);
+                                $query = "SELECT id, type FROM {$CFG->prefix}unit_tracker_marks";
+                                $result = $DB->get_records($query);
                                 echo '<select name="marking">';
-                                while ($row = $result->fetch_object()) {
+                                foreach ($result as $row) {
                                     echo '<option value="', $row->id, '">', $row->type, '</option>';
                                 }
                                 echo '</select>';

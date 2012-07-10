@@ -10,14 +10,15 @@
     include('settings.php');
     require_once("../../config.php");
     include('soap_connection.php');
-    global $USER, $CFG, $DB;
+    global $CFG, $COURSE, $USER, $DB;
 
     ?>
     <script type="text/javascript" src="./jquery2/jquery-1.7.1.min.js"></script>
 <!--    <script type="text/javascript" src="./jquery2/jquery-ui-1.8.17.custom.min.js"></script>-->
     <script type="text/javascript" src="./jquery2/DataTables/media/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="./jquery2/DataTables/media/js/ColReorder.min.js"></script>
-<!--    <script type="text/javascript" src="./jquery2/ColReorder.min.js"></script>-->
+    <script type="text/javascript" src="bootstrap2/js/bootstrap.min.js""></script>
+<!--   <script type="text/javascript" src="./jquery2/ColReorder.min.js"></script>-->
 <!--    <script type="text/javascript" src="./jquery2/ColVis.min.js"></script>-->
     <script type="text/javascript" src="./jquery2/jquery.multi-open-accordion-1.0.1.js"></script>
 

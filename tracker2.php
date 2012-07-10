@@ -1,12 +1,13 @@
 <?php
 include('top_include.php');
+
 ?>
 <div class="container">
     <?php topbar('Unit Tracker'); ?>
 </div>
 
-<div class="container-fluid">
 
+<div class="container-fluid">
     <?php
 
     include('course_select_dropdown2.php');
@@ -14,198 +15,141 @@ include('top_include.php');
 
 
     // Get all the course code
-//echo 'course ref: ' . $_SESSION['course_code_session'];
-    $query = "SELECT idnumber FROM mdl_course WHERE id='" . $_SESSION['course_code_session'] . "'";
-//    echo $query;
-    $result = $mysqli->query($query);
+    $result = $DB->get_records('course', array('id' => $_SESSION['course_code_session']));
 
-    while ($row = $result->fetch_object()) {
+    foreach ($result as $row) {
+
+        $courseId = $row->id;
+        $courseName = $row->fullname;
+        $courseCode = $row->idnumber;
         $_SESSION['course_ref_session'] = $row->idnumber;
     }
-
     ?>
 
-    <div class="span6">
-        <table>
+    <div class="span4">
+        <table class="table">
             <tr>
                 <th colspan="2">Options</th>
             </tr>
             <tr>
-                <td style="vertical-align: middle;">
-                    <a href="#" class="addNew"><br/><br/><br/><br/>Unit info</a></p>
-</td>
                 <td>
                     <?php
                     // Set up the edit button
-                    $queryEdit = "SELECT id FROM unit_tracker_courses WHERE course_code='" . $_SESSION['course_ref_session'] . "'";
-                    $resultEdit = $mysqli->query($queryEdit);
+//                    $queryEdit = "SELECT id FROM unit_tracker_courses WHERE course_code='" . $_SESSION['course_ref_session'] . "'";
+                    $resultEdit = $DB->get_records('unit_tracker_courses', array('moodle_id' => $_SESSION['course_code_session']));
 //                    echo $queryEdit;
 
 
-                    if ($resultEdit->num_rows >= 1) {
-
-                        while ($rowEdit = $resultEdit->fetch_object()) {
-                            echo '<a class="edit" href="edit_units2.php?var1=', $rowEdit->id, '" /><br/><br/><br/><br/>Edit unit details</a/>';
-                        }
+                    if (count($resultEdit) >= 1) {
+                        echo '<b>The course exists in the tracker</b><br>';
 
                     } else {
-                        echo '<font color="red"><b>This course hasn\'t been set up for unit tracking. Please contact ICT</b></font>';
+                        echo '<font color="red"><b>This course hasn\'t been set up for unit tracking. Please wait while we set it up</b></font>';
+
+//                        if (!empty($_SESSION['course_ref_session'])) {
+                        echo '<p>The course code for this course is: ', $_SESSION['course_ref_session'];
+                        // insert a record into the unit_tracker for the course
+                        $query = "INSERT INTO {$CFG->prefix}unit_tracker_courses (course_code, coursename, moodle_id) VALUES ('" . $courseCode . "','" . $courseName . "','" . $courseId . "') ";
+
+//                            echo $query;
+                        $DB->execute($query);
+                        // refresh the page
+                        echo '<meta http-equiv="refresh" content="1">';
+//                        }
                     }
+
                     ?>
 
                 </td>
             </tr>
         </table>
-    </div>
 
+    </div>
 </div>
 
-<!-- Load the main javscript Asynchronously-->
-<script id="myscript" type="text/javascript">
+<div class="noprint">
+    <?php
+    showCurrentlySelectedCourse($CFG, $DB);
+    ?>
+</div>
 
-    (function () {
-        var myscript = document.createElement('script');
-        myscript.type = 'text/javascript';
-        myscript.src = ('jscripts.js');
-        var s = document.getElementById('myscript');
-        s.parentNode.insertBefore(myscript, s);
-    })();
-
-</script>
 
 <p>
 
-<div id="page">
-<div id="layout">
-<div class="demo">
+<?php
+
+// set the group id
+if ($_SESSION['course_group_session'] == 'All groups') {
+    $groupId = 0;
+} else {
+    $groupId = $_SESSION['course_group_session'];
+}
+
+// get the course context
+$context = context_course::instance($courseId);
+// get the enrolled students for the course
+$students = get_enrolled_users($context, null, $groupId);
+
+$check = 0;
+foreach ($students as $row) {
+
+// check if the students are already logged inot the unit tracker and if not add them and refresh the page
+    $queryApp = "SELECT id FROM {$CFG->prefix}unit_tracker_user_courses WHERE moodle_id='" . $row->id . "' AND course_moodle_id='" . $courseId . "'";
+    $resultApp = $DB->get_records_sql($queryApp);
+
+    if (count($resultApp) < 1) {
+
+        $check = 1;
+        $queryCreate = "INSERT INTO {$CFG->prefix}unit_tracker_user_courses (learner_ref, course_code, moodle_id, course_moodle_id) VALUES ('$row->idnumber', '" . $_SESSION['course_ref_session'] . "','" . $row->id . "','" . $courseId . "')";
+//        echo $queryCreate;
+        $DB->execute($queryCreate);
+    }
+
+}
+
+// If students have needed to be added to the unit tracker refresh the page
+if ($check == 1) {
+    echo '<div class="alert alert-error"<i class="icon-star"></i> Warning Accounts have had to be created, refreshing the page</div>';
+    echo '<meta http-equiv="refresh" content="1">';
+}
+
+?>
+
+<table>
+    <tr>
+        <td style="text-align: left;">
+            <h1>Course Unit/ Subject Tracker 2 *Beta V2*</h1>
+
+        </td>
+        <td style="text-align: right;" width="15%">
+<!--            <button class="btn btn-warning" data-toggle="collapse" data-target="#unitsDiv">-->
+<!--                <i class="icon-pencil icon-white"></i> Show / Edit Unit Criteria-->
+<!--            </button>   -->
+            <a class="btn btn-warning" href="edit_units2_2.php?courseId=<?php echo $courseId; ?>" >
+                <i class="icon-pencil icon-white"></i> Show / Edit Unit Criteria
+            </a>
+        </td>
+    </tr>
+</table>
+
+
+<!--<div id="unitsDiv" class="collapse">-->
+<!--    --><?php //include('edit_units2_2.php'); ?>
+<!--</div>-->
+<div class="container-fluid">
+
 
 <?php
 
-//$courseid = $_GET['courseid'];
-//$contextid = $_GET['var1'];
-////$status = $_GET['status'];
-////$userid = $USER->id;
-////
-////
-////// start a session
-////
-//if (empty($_SESSION['course_code_session'])) {
-//    $_SESSION['course_code_session'] = $courseid;
-//    $_SESSION['course_context_session'] = $contextid;
-//}
-
-// the order is important here or the correct information isn't loaded into the navigation header
-
-//include('process_forms.php');
-
-//$courseContextId = getCourseContextID( $_SESSION['course_code_session']);
-
-// Get all the students on the course
-//echo '<h1> students on the course </h1>';
-//echo 'group id is: ' . $group_id;
-//select and show all students on this course used roleid 5 to indentify students
-// $querystudents = "SELECT a.userid, firstname, lastname FROM {$CFG->prefix}role_assignments a JOIN {$CFG->prefix}user u on a.userid=u.id where contextid='" . $contextid . "' AND a.roleid='5' order by lastname";
-$select = "SELECT  distinct u.id, u.firstname, u.lastname, u.idnumber, u.username";
-$from = " FROM {$CFG->prefix}role_assignments a JOIN {$CFG->prefix}user u on a.userid=u.id LEFT JOIN {$CFG->prefix}groups_members gm ON gm.userid=a.userid";
-$where = " WHERE contextid='" . $_SESSION['course_context_session'] . "'";
-$and = " AND a.roleid='5' order by lastname";
-if ($_SESSION['course_group_session'] == 'All groups') {
-    $andgroup = " ";
-} elseif ($_SESSION['course_group_session'] != 'All groups') {
-    $andgroup = " AND gm.groupid='" . $_SESSION['course_group_session'] . "'";
-}
-
-$querystudents = $select . $from . $where . $andgroup . $and;
-//echo $querystudents;
-
-$resultStudents = $mysqli->query($querystudents);
-$resultStudents2 = $mysqli->query($querystudents);
-
-
-$check = 0;
-while ($row = $resultStudents->fetch_object()) {
-    //    $firstname = $row->firstname;
-    //    $lastname = $row->lastname;
-    //    $learnerref = $row->idnumber;
-    //    $moodleId = $row->id;
-    //    echo 'l ref: ' . $learnerref;
-
-    // Check the students have an entry in the apprentice tables - else create them
-
-    $queryApp = "SELECT id FROM unit_tracker_user_courses WHERE learner_ref='" . $row->idnumber . "' AND course_code='" . $_SESSION['course_ref_session'] . "'";
-    //    echo $queryApp;
-    $resultApp = $mysqli->query($queryApp);
-    //    $num_rows = $resultApp->num_rows;
-    //    echo 'num_rows: ' . $num_rows;
-    if ($resultApp->num_rows < 1) {
-        echo 'No record';
-        echo ' creating a record';
-        $check = 1;
-        $queryCreate = "INSERT INTO unit_tracker_user_courses (learner_ref, course_code) VALUES ('$row->idnumber', '" . $_SESSION['course_ref_session'] . "')";
-        echo $queryCreate;
-        $mysqli->query($queryCreate);
-    } else {
-        //        echo 'Record found';
-        // the student exists so pop them into an array to stop having to run the query again
-        //        $student = array(
-        //            $learnerref,
-        //            $firstname,
-        //            $lastname
-        //        );
-        //        array_push($students, $student);
-    }
-
-}
-
-//echo 'check is: ', $check;
-if ($check == 1) {
-    echo '<font color=red>Warning Accounts have had to be created, please refresh the page</font>';
-}
-
-// Get the units for the course
-//echo 'ref is: '  . $_SESSION['course_ref_session'];
-$query = "SELECT id FROM unit_tracker_courses WHERE course_code='" . $_SESSION['course_ref_session'] . "'";
-//echo $query;
-
-$result = $mysqli->query($query);
-
-while ($row = $result->fetch_object()) {
-
-    //    echo $row['id'] . ' ' . $row['courseid'] . ' ' . $row['coursename'] . '<br/>';
-    $apprenticeCourseId = $row->id;
-}
-
-showCurrentlySelectedCourse($CFG, $mysqli);
-
-// Build thes array
-
-echo '<h1>Course Unit/ Subject Tracker *Beta V2*</h1>';
-
-// FIXME break out into an xml service
-
-// Get the course id ion the tables
-$query = "SELECT id FROM unit_tracker_courses WHERE course_code='" . $_SESSION['course_ref_session'] . "'";
-//echo $query;
-$result = $mysqli->query($query);
-
-// count the rows and clear the internal session is a row isn't returned
-if ($result->num_rows >= 1) {
-    while ($row = $result->fetch_object()) {
-        $_SESSION['course_code_internal_session'] = $row->id;
-    }
-} else {
-    $_SESSION['course_code_internal_session'] = '';
-}
-$course = array();
 // Get the units on the course
+$course = array();
 
-$queryUnits = "SELECT  u.id, u.name, u.courseid, u.description, m.type, m.colours  FROM unit_tracker_units u LEFT JOIN unit_tracker_marks m ON u.markid=m.id WHERE u.courseid='" . $_SESSION['course_code_internal_session'] . "'";
+$queryUnits = "SELECT  u.id, u.name, u.courseid, u.description, m.type, m.colours  FROM {$CFG->prefix}unit_tracker_units u LEFT JOIN {$CFG->prefix}unit_tracker_marks m ON u.markid=m.id WHERE u.courseid='" . $courseId . "'";
 
-//echo $queryUnits;
-$resultUnits = $mysqli->query($queryUnits);
+$resultUnits = $DB->get_records_sql($queryUnits);
 
 // loop through and add the units
-while ($rowUnits = $resultUnits->fetch_object()) {
+foreach ($resultUnits as $rowUnits) {
 
     $unit = array(
         "Unit_id" => $rowUnits->id,
@@ -214,32 +158,31 @@ while ($rowUnits = $resultUnits->fetch_object()) {
         "unit_colours" => $rowUnits->colours,
     );
 
-    //        print_r($unit);
-
     // add the critiea for each unit to the units array
-    $queryCrit = "SELECT c.id, name, type, description, colours FROM unit_tracker_units_criteria c JOIN unit_tracker_marks_criteria mc ON c.markid=mc.id WHERE unitid='" . $rowUnits->id . "'";
-//            echo $queryCrit;
-    $resultCrit = $mysqli->query($queryCrit);
-    while ($rowCrit = $resultCrit->fetch_object()) {
-        $critria = array(
-            'Crit_id' => $rowCrit->id,
-            'Crit_name' => $rowCrit->name,
-            'Crit_mark' => $rowCrit->type,
-            'Crit_des' => $rowCrit->description,
-            "crit_colours" => $rowCrit->colours,
-        );
-        //        print_r($critria);
-        array_push($unit, $critria);
+    $queryCrit = "SELECT c.id, name, type, description, colours FROM {$CFG->prefix}unit_tracker_units_criteria c JOIN {$CFG->prefix}unit_tracker_marks_criteria mc ON c.markid=mc.id WHERE unitid='" . $rowUnits->id . "'";
+//           echo $queryCrit;
+    $resultCrit = $DB->get_records_sql($queryCrit);
+    if (count($resultCrit) > 0) {
+
+        foreach ($resultCrit as $rowCrit) {
+            $critria = array(
+                'Crit_id' => $rowCrit->id,
+                'Crit_name' => $rowCrit->name,
+                'Crit_mark' => $rowCrit->type,
+                'Crit_des' => $rowCrit->description,
+                "crit_colours" => $rowCrit->colours,
+            );
+
+            array_push($unit, $critria);
+        }
     }
 
     array_push($course, $unit);
 }
 
-//print_r($course);
-
 // Count starts at one to allow of the unit mark column
 
-echo '<table><tr><td>';
+echo '<table class="table"><tr><td>';
 
 echo '</td><td align="center">';
 
@@ -284,15 +227,9 @@ foreach ($course as $key => $value) {
     foreach ($value as $iKey => $iValue) {
         // Knock out the duff results and count the number of criterias
 
-        //        if (($iValue[Crit_name] != "U") && ($iValue[Crit_name] != '7') && ($iValue[Crit_name] != 'P') && ($iValue[Crit_name] != '6')) {
-        //            $critCount++;
-        //
-        //            echo '<th class="criteria_name tcol', $colId, '" name="tcol', $colId, '">' . $iValue[Crit_name] . '</th>';
-        //        }
-
         // Knock out the duff results based on stings 1 character long and count the number of criterias
         //        $num_char = strlen($iValue[Crit_name]);
-        echo $num_char;
+//        echo $num_char;
         if (strlen($iValue[Crit_name]) > 1) {
             $critCount++;
 
@@ -316,14 +253,18 @@ $colId = 0;
 $count = 0;
 $colourId = 0;
 
-while ($row = $resultStudents2->fetch_object()) {
-    echo '<tr><td><input  type="hidden" name="learner[][firstname]" value="', $row->firstname, '"/>', $row->firstname, '</td><td><input type="hidden" name="learner[][lastname]" value="', $row->lastname, '"/>', $row->lastname, '</td><td><input type="hidden" name="learner[][learner_ref]" value="', $row->idnumber, '"/>', $row->idnumber, '</td>';
+//print_r($students);
+
+foreach ($students as $row) {
+    echo '<tr><td><input  type="hidden" name="learner[][firstname]" value="', $row->firstname, '"/>', $row->firstname, '</td><td><input type="hidden" name="learner[][lastname]" value="', $row->lastname, '"/>', $row->lastname, '</td><td><input type="hidden" name="learner[][learner_ref]" value="', $row->id, '"/>', $row->idnumber, '</td>';
 
     // The report button
     echo '<td><a href="apprentice_report.php?stuID=', $row->idnumber, '"/><img src="./images/report_check.png" width="20px" border="0"/></a></td>';
 
     // get all the students units and stuff
-    $query = "select distinct uc.learner_ref, uc.employer, uc.rep_name, uc.employer_id as employerid ,uc.training_centre, uc.programme_start_date, uc.officer,
+    // Has to have u.id as the first option as this is a unqiue unit id, else moodle groups everything into one row
+
+    $query = "select u.id, uc.learner_ref, uc.employer, uc.rep_name, uc.employer_id as employerid ,uc.training_centre, uc.programme_start_date, uc.officer,
 c.course_code, c.coursename,
 u.id as unit_id, u.name as unit_name, u.description, u.markid,
 um.id as mark_id, um.type as mark_type,
@@ -332,38 +273,35 @@ uuc.id as crit_id, uuc.name as crit_name, uuc.description as crit_description,
 usrc.target as crit_target, usrc.evidence as crit_evidence, usrc.user_id,
 mc.id as criteria_id, mc.type as criteria_type, mc.colours as criteria_colours,
 mm.type as unit_marks, mm.colours as unit_colours
-FROM unit_tracker_user_courses uc
-LEFT JOIN unit_tracker_courses c ON c.course_code=uc.course_code
-LEFT JOIN unit_tracker_units u ON u.courseid=c.id
-LEFT JOIN unit_tracker_user_units uu ON u.id=uu.unit_id and uu.user_id=uc.learner_ref
-LEFT JOIN unit_tracker_marks mm ON u.markid=mm.id
-LEFT JOIN unit_tracker_marks um ON u.markid=um.id LEFT JOIN unit_tracker_units_criteria uuc ON uuc.unitid=u.id
-LEFT JOIN unit_tracker_user_criteria usrc ON usrc.criteria_id=uuc.id AND usrc.user_id=uc.learner_ref
-LEFT JOIN unit_tracker_marks_criteria mc ON uuc.markid=mc.id
+FROM {$CFG->prefix}unit_tracker_user_courses uc
+LEFT JOIN {$CFG->prefix}unit_tracker_courses c ON c.course_code=uc.course_code
+LEFT JOIN {$CFG->prefix}unit_tracker_units u ON u.courseid=c.moodle_id
+LEFT JOIN {$CFG->prefix}unit_tracker_user_units uu ON u.id=uu.unit_id and uu.moodle_id=uc.moodle_id
+LEFT JOIN {$CFG->prefix}unit_tracker_marks mm ON u.markid=mm.id
+LEFT JOIN {$CFG->prefix}unit_tracker_marks um ON u.markid=um.id LEFT JOIN {$CFG->prefix}unit_tracker_units_criteria uuc ON uuc.unitid=u.id
+LEFT JOIN {$CFG->prefix}unit_tracker_user_criteria usrc ON usrc.criteria_id=uuc.id AND usrc.moodle_id=uc.moodle_id
+LEFT JOIN {$CFG->prefix}unit_tracker_marks_criteria mc ON uuc.markid=mc.id
 
-where learner_ref='" . $row->idnumber . "' AND c.course_code='" . $_SESSION['course_ref_session'] . "'";
-//                echo $query;
-    $resultUnits = $mysqli->query($query) or die ('error;');
+where uc.moodle_id='" . $row->id . "' AND c.moodle_id='" . $courseId . "'";
+//                echo '<br>' ,  $query , '<br>';
+    $resultUnits = $DB->get_records_sql($query);
     $unitName = '';
     $colId = 0;
     $id = 1;
     $unitId = 1;
 
-//echo 'units';
-//    var_dump($resultUnits);
 
-    while ($row2 = $resultUnits->fetch_object()) {
+//    print_r($resultUnits);
+
+    foreach ($resultUnits as $row2) {
         // echo the unit mark using the unit name to test
-
+//         echo ' unit name: ' . $row2->unit_name;
         if ($unitName != $row2->unit_name) {
             // use the unit mark header to increment the tcol value
             $colId++;
 
 //
-//            $markcol = getMarkColour($row2->unit_id, $row->idnumber, $mysqli, 'unit');
-//            echo 'mark; ' , $markcol;
-            //echo 'uunitid: ' . $row['unit_id'];
-            echo '<td class="ucol', $colId, '" name="ucol', $colId, '" style="background-color:' , getMarkColour($row2->unit_id, $row->idnumber, $mysqli, 'unit') , ';">', getPossbileUnitMarks($row2->unit_marks, $row2->unit_colours, $row2->unit_target, $unitId, 'unit', $row2->unit_id, $row->idnumber, $count), '</td>';
+            echo '<td class="ucol', $colId, '" name="ucol', $colId, '" style="background-color:', getMarkColour($row2->unit_id, $row->id, $DB, 'unit', $CFG), ';">', getPossbileUnitMarks($row2->unit_marks, $row2->unit_colours, $row2->unit_target, $unitId, 'unit', $row2->unit_id, $row->id, $count), '</td>';
             $unitName = $row2->unit_name;
 
             $unitId++;
@@ -373,18 +311,10 @@ where learner_ref='" . $row->idnumber . "' AND c.course_code='" . $_SESSION['cou
             $colourId = 0;
         }
 
-//        if ($colourId == 0) {
-//            $colour = 'crit_target';
-//            $colourId = 1;
-//        } else {
-//            $colour = 'crit_target2';
-//            $colourId = 0;
-//        }
-
 
         // check for empty crit headers and if so don't echo any cells for them
         if (!empty($row2->crit_id)) {
-            echo '<td class="tcol', $colId, '" name="tcol', $colId, '" bgcolor="' , getMarkColour($row2->crit_id, $row->idnumber, $mysqli, 'criteria') , '">', getPossbileUnitMarks($row2->criteria_type, $row2->criteria_colours, $row2->crit_target, $id, 'critieria', $row2->crit_id, $row->idnumber, $count), '</td>';
+            echo '<td class="tcol', $colId, '" name="tcol', $colId, '" bgcolor="', getMarkColour($row2->crit_id, $row->id, $DB, 'criteria', $CFG), '">', getPossbileUnitMarks($row2->criteria_type, $row2->criteria_colours, $row2->crit_target, $id, 'critieria', $row2->crit_id, $row->id, $count), '</td>';
         }
         $id++;
         $count++;
@@ -407,28 +337,6 @@ echo '</form>';
 <?php
 // clear the arrays
 
-
-echo '<div id="dialog" title="Unit Descriptions">';
-
-echo '<p>Below are details about the units and criteria on the course</p>';
-echo '<div id="multiOpenAccordion">';
-foreach ($course as $key => $value) {
-
-    accord_first($value['unit_name']);
-    foreach ($value as $iKey => $iValue) {
-        if (($iValue[Crit_name] != "U") && ($iValue[Crit_name] != '7') && ($iValue[Crit_name] != 'P') && ($iValue[Crit_name] != '6')) {
-            echo $iValue[Crit_name], ' ', $iValue[Crit_des], '<br/>';
-        }
-    }
-    accord_last();
-
-}
-echo '<br/>';
-echo '<br/>';
-
-echo '</div>';
-echo '</div>';
-
 unset($units);
 unset($course);
 unset($unit);
@@ -436,16 +344,26 @@ unset($critria);
 unset($course);
 
 ?>
-
 </div>
 </div>
 </div>
-
 
 <?php
 include('bottom_include.php');
-$mysqli->close;
-mysql_close();
 
 ?>
 
+<script>
+    // Drive the checkboxes to hide the unit detials
+    $(window).load(function () {
+        $("input:checkbox:not(:checked)").each(function () {
+            var column = "table ." + $(this).attr("name");
+            $(column).hide();
+        });
+
+        $("input:checkbox").click(function () {
+            var column = "table ." + $(this).attr("name");
+            $(column).toggle();
+        });
+    });
+</script>

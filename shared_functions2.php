@@ -449,7 +449,7 @@ function getPossbileUnitMarks($gradesArray, $coloursArray, $current, $id, $unit,
     $grades = explode(',', $gradesArray);
     $colours = explode(',', $coloursArray);
 
-    //    print_r($grades);
+//        print_r($grades);   /
     echo '<br/>';
     //print_r($colours);
 
@@ -467,6 +467,7 @@ function getPossbileUnitMarks($gradesArray, $coloursArray, $current, $id, $unit,
     foreach ($combined as $key => $item) {
         $selected = '';
         $colour = '';
+
         if (trim($current) == trim($key)) {
             $selected = 'selected="selected"';
             $colour = $item;
@@ -480,25 +481,25 @@ function getPossbileUnitMarks($gradesArray, $coloursArray, $current, $id, $unit,
 
 
 // Get the colour for the mark
-function getColour($unitId, $value, $type, $mysqli)
+function getColour($unitId, $value, $type, $DB, $CFG)
 {
 
     // Check the type to use the right query
     if ($type == 'units') {
 
-        $query = "SELECT type, colours FROM  moodle.unit_tracker_units u
-    JOIN moodle.unit_tracker_marks mu ON mu.id=u.markid
+        $query = "SELECT type, colours FROM  {$CFG->prefix}unit_tracker_units u
+    JOIN {$CFG->prefix}unit_tracker_marks mu ON mu.id=u.markid
     WHERE u.id='" . $unitId . "'";
 
     } elseif ($type == 'criteria') {
-        $query = "SELECT type, colours FROM  moodle.unit_tracker_units_criteria u
-    JOIN moodle.unit_tracker_marks_criteria mu ON mu.id=u.markid
+        $query = "SELECT type, colours FROM  {$CFG->prefix}unit_tracker_units_criteria u
+    JOIN {$CFG->prefix}unit_tracker_marks_criteria mu ON mu.id=u.markid
     WHERE u.id='" . $unitId . "'";
     }
     //echo $query;
-    $result = $mysqli->query($query);
+    $result = $DB->get_records_sql($query);
 
-    while ($row = $result->fetch_object()) {
+    foreach ($result as $row) {
 
         $grades = explode(',', $row->type);
         $colours = explode(',', $row->colours);
@@ -519,25 +520,25 @@ function getColour($unitId, $value, $type, $mysqli)
     return trim($colour);
 }
 
-function getMarkColour($unitId, $userId, $mysqli, $type)
+function getMarkColour($unitId, $userId, $DB, $type, $CFG)
 {
 
     if ($type == 'unit') {
-        $table = "moodle.unit_tracker_user_units";
-        $query = "SELECT colour FROM " . $table . " WHERE unit_id='" . $unitId . "' AND user_id='" . $userId . "'";
+        $table = "{$CFG->prefix}unit_tracker_user_units";
+        $query = "SELECT colour FROM " . $table . " WHERE unit_id='" . $unitId . "' AND moodle_id='" . $userId . "'";
     } elseif ($type == 'criteria') {
         // check the colour isn't black as it will return black
-        $table = 'moodle.unit_tracker_user_criteria';
+        $table = "{$CFG->prefix}unit_tracker_user_criteria";
         $where = " criteria_id ='";
-        $query = "SELECT colour FROM " . $table . " WHERE " . $where . $unitId . "' AND user_id='" . $userId . "'";
+        $query = "SELECT colour FROM " . $table . " WHERE " . $where . $unitId . "' AND moodle_id='" . $userId . "'";
 
 
     }
 
 //echo $query;
 
-    $result = $mysqli->query($query) or die($mysqli->error_no());
-    while ($row = $result->fetch_object()) {
+    $result = $DB->get_records_sql($query);
+    foreach ($result as $row) {
         if (!empty($row->colour)) {
             $colour = $row->colour;
         } else {
