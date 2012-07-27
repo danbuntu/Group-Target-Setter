@@ -355,55 +355,6 @@ function getMedals($studentNumber, $mysqli)
 
 }
 
-
-function makePieChart($array, $colours, $title)
-{
-    $i = 0;
-    $legend = array();
-    foreach ($array as $item) {
-        if ($i != 6) {
-            $key = $i . ' (' . $item . ')';
-            array_push($legend, $key);
-            $i++;
-        } else {
-            $key = 'No flight set (' . $item . ')';
-            array_push($legend, $key);
-        }
-    }
-
-    echo '<img src="graphs2.php?var1=', urlencode(serialize($array)), '&var2=', $title, '&var3=', urlencode(serialize($legend)), '&var4=', utf8_encode(urlencode(serialize($colours))), '">';
-}
-
-
-function makePieChart2($array, $legend, $colours, $title)
-{
-    $merged = array_combine($legend, $array);
-
-    $legend2 = array();
-    foreach ($merged as $key => $item) {
-        $value = $key . ' (' . $item . ')';
-        array_push($legend2, $value);
-    }
-
-    echo '<img src="graphs2.php?var1=', urlencode(serialize($array)), '&var2=', $title, '&var3=', urlencode(serialize($legend2)), '&var4=', urlencode(serialize($colours)), '">';
-}
-
-function makePieChart3($array, $legend, $colours, $title, $size)
-{
-    $merged = array_combine($legend, $array);
-
-    $legend2 = array();
-    foreach ($merged as $key => $item) {
-        if ($item != 0) {
-            $value = $key . ' (' . $item . ')';
-            array_push($legend2, $value);
-        }
-    }
-
-    echo '<img src="graphs3.php?var1=', urlencode(serialize($array)), '&var2=', $title, '&var3=', urlencode(serialize($legend2)), '&var4=', urlencode(serialize($colours)), '&var5=', $size, '">';
-}
-
-
 function mergeArrays($values, $colours, $legend)
 {
     $merged = array();

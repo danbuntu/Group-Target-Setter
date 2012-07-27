@@ -23,6 +23,10 @@
     <script type="text/javascript" src="./jquery2/jquery.multi-open-accordion-1.0.1.js"></script>
 
 
+<!--   Load the google chart api-->
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+
     <link rel="stylesheet" href="bootstrap2/css/bootstrap.min.css" type="text/css" media="screen"  charset="utf-8">
     <link rel="stylesheet" href="bootstrap2/css/dt_bootstrap.css" type="text/css" media="screen"  charset="utf-8">
     <link rel="stylesheet" href="./jquery2/css/custom-theme/jquery-ui-1.8.17.custom.css" type="text/css" media="screen"  charset="utf-8">

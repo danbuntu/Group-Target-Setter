@@ -161,3 +161,8 @@ li {
     margin-top: 10px;
     margin-bottom: 15px;
 }
+
+.pie_chart {
+    float: left;
+}
+
